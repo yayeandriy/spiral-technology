@@ -1,0 +1,22 @@
+;;;;;;;;;;;;
+;;;;;;;Walter;;Roboscope;;;
+;;maturity;precision, mm;tools;;CV;Mobile camera;External camera;AR;LLM;;Location
+;;;;;;;;;;;;
+1;Welding;Research;10;smartphone;;v;v;;;;;marketing
+2;Clapanator;Research;100;smartphone;;v;v;;;;;marketing
+3;Paint pinhole;POC;1;smartphone;;v;v;;;;;nordex
+4;Laminate QC;POC;10;smartphone;;v;v;;;;;LM
+5;Assemblies;Research;10;smartphone;;v;v;;;;;C:\assembly_validation
+6;Titomic gun;Research;100;helmet-mounted camera;;v;;v;;;;titomic
+7;PCB missing components;Research;1;stationary industrial camera;;v;;v;;;;na
+8;IR thermal imaging;Research;10;IR camera;;v;;v;;;;nordex
+9;Telescope antennas;Product;100;DSLR camera or smartphone;;v;;v;;;;telescope
+10;Construction site tracking;Research;1000;CCTV camera;;v;;v;;;;marketing
+11;blade MRO (Nahuel);POC;0,1;DSLR camera in a calibrated setup;;v;;v;;;;SR Technics
+12;BSI;Research;10;borescope;;v;;v;;v;;C:\roboscope
+13;NDT UT;POC;10;AR glasses;;v;v;;v;;;marketing
+14;Inspection/Marking indoors/contextual data;Product;100;smartphone;;;;;v;;;LM / TPI
+15;Inspection/Marking outdoors (airfield);POC;1000;smartphone;;;;;v (+GPS);;;marketing
+16;Exhibitions ;Product;NA;AR or VR glasses;;;;;;;;marketing
+17;VR Training;POC;NA;VR glasses;;;;;;;;marketing
+18;SPECTOR;Product;100;AR glasses;;;;;;;;

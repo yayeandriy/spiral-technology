@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200px" height="200px" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>favicon</title>
+    <g id="favicon" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <rect id="Rectangle" fill="#000000" x="8" y="8" width="184" height="184" rx="30"></rect>
+        <polygon id="Path" fill="#719CFF" points="98.9736608 22 161.752985 63.1806454 128.317101 82.4921824 101.08127 64.5100977 101.158143 98.1783388 128.317101 82.4921824 162.137408 104.821578 101.07557 139.803257 101.163747 178.429093 38.3844223 137.248448 71.8201954 117.936808 99.0560261 135.918893 98.9789902 102.250651 71.8201954 117.936808 38 95.607515 99.0617264 60.62557"></polygon>
+    </g>
+</svg>
