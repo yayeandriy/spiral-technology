@@ -2,7 +2,7 @@ use leptos::prelude::*;
 
 
 #[component]
-pub fn HomePage() -> impl IntoView {
+pub fn AboutPage() -> impl IntoView {
     view! {
         <main class="w-full h-screen flex bg-black items-start justify-start p-8 text-[20px]" style="line-height: 1.5;">
             <div class="flex flex-col gap-2 w-[400px]">

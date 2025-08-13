@@ -69,3 +69,26 @@ Auth:
   ✔ Logout @done(25-04-06 18:21)
 ✔ Admin @done(25-04-06 18:21)
 ☐ Send code
+
+
+ // {
+                                //   move || runner_class_style(current_area.0.get(), &project)
+                                //   .into_iter()
+                                //   .map(|class| {
+                                //       view! {
+                                //           <div class=class 
+                                //           style="background:repeating-linear-gradient(to right, black 0 2px, transparent 2px 12px) bottom/100% 2px no-repeat"
+                                //           ><div class="h-2 w-2 rounded-full bg-black -mb-[3px] -ml-1 transition-all ease-[cubic-bezier(0.95,0.05,0.795,0.035)] duration-[1s]" /></div>
+                                //       }
+                                //   }).collect_view()
+                                // }
+                                    // <div class=class_style(&project.id.to_string())
+                                    //      style="background:repeating-linear-gradient(to right, black 0 2px, transparent 2px 12px) bottom/100% 2px no-repeat"
+                                    // >
+                                    //   <div class=class_style_dot(&project.id.to_string()) />
+                                    // </div>
+                                    // <div class=class_style_2(&project.id.to_string())
+                                    //      style="background:repeating-linear-gradient(to right, black 0 2px, transparent 2px 12px) bottom/100% 2px no-repeat"
+                                    // >
+                                    //   <div class=class_style_dot(&project.id.to_string()) />
+                                    // </div>

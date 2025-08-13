@@ -1,10 +1,8 @@
 mod app;
 mod pages;
-mod posts_mock_data;
-mod mock_content;
+mod projects;
 use app::*;
 use leptos::{logging, mount};
-use posts_mock_data::*;
 
 // pub const API_URL: &str = "https://api.spector.vision/api/v1/";
 
