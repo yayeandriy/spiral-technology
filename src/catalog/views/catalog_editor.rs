@@ -5,6 +5,7 @@ use std::collections::HashSet;
 
 use crate::areas::areas_context::use_areas;
 use crate::areas::model::ProjectArea;
+use crate::ui::*;
 
 #[component]
 fn CategorySelector(
@@ -25,50 +26,20 @@ fn CategorySelector(
                 categories.sort();
                 
                 view! {
-                    <div class="relative">
-                        <select
-                            class="w-full text-black px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
-                            prop:value=move || {
-                                let current = form_category.get();
-                                let areas = areas.get();
-                                if current.is_empty() {
-                                    String::new()
-                                } else if areas.iter().any(|area| area.category == current) {
-                                    current
-                                } else {
-                                    "__custom__".to_string()
-                                }
-                            }
-                            on:change=move |ev| {
+                    <div>
+                        <CategorySelect
+                            value=Signal::derive(move || form_category.get())
+                            categories=categories
+                            disabled=is_submitting.get()
+                            on_change=Box::new(move |ev| {
                                 let value = event_target_value(&ev);
                                 if value == "__custom__" {
                                     set_form_category.set(String::new());
                                 } else {
                                     set_form_category.set(value);
                                 }
-                            }
-                            disabled=move || is_submitting.get()
-                        >
-                            <option value="">
-                                "Select a category..."
-                            </option>
-                            {categories.into_iter().map(|category| {
-                                let cat_name = category.clone();
-                                view! {
-                                    <option value=category>
-                                        {cat_name}
-                                    </option>
-                                }
-                            }).collect::<Vec<_>>()}
-                            <option value="__custom__">
-                                "Add new category..."
-                            </option>
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
-                            </svg>
-                        </div>
+                            })
+                        />
                     </div>
                     
                     // Custom category input (shown when custom category is needed)
@@ -77,16 +48,15 @@ fn CategorySelector(
                         let areas = areas.get();
                         current == "__custom__" || (!current.is_empty() && !areas.iter().any(|area| area.category == current))
                     }>
-                        <input
-                            type="text"
-                            class="w-full px-3 py-2 mt-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Enter new category name..."
-                            prop:value=move || {
+                        <TextInput
+                            value=Signal::derive(move || {
                                 let current = form_category.get();
                                 if current == "__custom__" { String::new() } else { current }
-                            }
-                            on:input=move |ev| set_form_category.set(event_target_value(&ev))
-                            disabled=move || is_submitting.get()
+                            })
+                            placeholder="Enter new category name...".to_string()
+                            class="mt-2".to_string()
+                            disabled=is_submitting.get()
+                            on_input=Box::new(move |ev| set_form_category.set(event_target_value(&ev)))
                         />
                     </Show>
                 }
@@ -205,23 +175,23 @@ pub fn CatalogEditor() -> impl IntoView {
                     
                     <form on:submit=on_submit class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                "Title*"
-                            </label>
-                            <input
-                                type="text"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Enter area title..."
-                                prop:value=form_title
-                                on:input=move |ev| set_form_title.set(event_target_value(&ev))
-                                disabled=is_submitting
+                            <FieldLabel
+                                text="Title".to_string()
+                                required=true
+                            />
+                            <TextInput
+                                value=Signal::derive(move || form_title.get())
+                                placeholder="Enter area title...".to_string()
+                                disabled=is_submitting.get()
+                                on_input=Box::new(move |ev| set_form_title.set(event_target_value(&ev)))
                             />
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                "Category*"
-                            </label>
+                            <FieldLabel
+                                text="Category".to_string()
+                                required=true
+                            />
                             <CategorySelector 
                                 areas=area_context_for_form.areas.0
                                 form_category=form_category
@@ -231,32 +201,26 @@ pub fn CatalogEditor() -> impl IntoView {
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                "Description"
-                            </label>
-                            <textarea
-                                rows="3"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Optional description..."
-                                prop:value=form_desc
-                                on:input=move |ev| set_form_desc.set(event_target_value(&ev))
-                                disabled=is_submitting
-                            ></textarea>
+                            <FieldLabel text="Description".to_string() />
+                            <TextArea
+                                value=Signal::derive(move || form_desc.get())
+                                placeholder="Optional description...".to_string()
+                                rows=3
+                                disabled=is_submitting.get()
+                                on_input=Box::new(move |ev| set_form_desc.set(event_target_value(&ev)))
+                            />
                         </div>
                         
                         <div class="flex justify-end gap-3">
-                            <button
-                                type="button"
-                                on:click=move |_| clear_form()
-                                class="px-4 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-                                disabled=is_submitting
+                            <CancelButton
+                                on_click=Box::new(move |_| clear_form())
+                                disabled=is_submitting.get()
                             >
                                 "Cancel"
-                            </button>
-                            <button
-                                type="submit"
-                                class="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50"
-                                disabled=is_submitting
+                            </CancelButton>
+                            <PrimaryButton
+                                type_="submit".to_string()
+                                disabled=is_submitting.get()
                             >
                                 {move || if is_submitting.get() { 
                                     "Saving..." 
@@ -265,7 +229,7 @@ pub fn CatalogEditor() -> impl IntoView {
                                 } else { 
                                     "Create Area" 
                                 }}
-                            </button>
+                            </PrimaryButton>
                         </div>
                     </form>
                 </div>
@@ -322,18 +286,18 @@ pub fn CatalogEditor() -> impl IntoView {
                                                                 })}
                                                             </div>
                                                             <div class="flex gap-2 ml-4">
-                                                                <button
-                                                                    on:click=move |_| edit_fn(area_for_edit.clone())
-                                                                    class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                <SecondaryButton
+                                                                    size=ButtonSize::Small
+                                                                    on_click=Box::new(move |_| edit_fn(area_for_edit.clone()))
                                                                 >
                                                                     "Edit"
-                                                                </button>
-                                                                <button
-                                                                    on:click=move |_| delete_fn(area_id, area_title.clone())
-                                                                    class="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                                                </SecondaryButton>
+                                                                <DangerButton
+                                                                    size=ButtonSize::Small
+                                                                    on_click=Box::new(move |_| delete_fn(area_id, area_title.clone()))
                                                                 >
                                                                     "Delete"
-                                                                </button>
+                                                                </DangerButton>
                                                             </div>
                                                         </div>
                                                     </div>

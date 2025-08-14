@@ -4,6 +4,7 @@ mod projects;
 mod areas;
 mod catalog;
 mod supabase;
+mod ui;
 use app::*;
 use leptos::{logging, mount};
 

@@ -2,6 +2,7 @@ use leptos::prelude::*;
 
 use crate::projects::projects_context::use_project;
 use crate::projects::model::Project;
+use crate::ui::*;
 
 #[component]
 pub fn ProjectsList(
@@ -20,12 +21,11 @@ pub fn ProjectsList(
                 {move || {
                     if let Some(create_callback) = on_create {
                         view! {
-                            <button
-                                on:click=move |_| create_callback.run(())
-                                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            <PrimaryButton
+                                on_click=Box::new(move |_| create_callback.run(()))
                             >
                                 "Create New Project"
-                            </button>
+                            </PrimaryButton>
                         }.into_any()
                     } else {
                         view! { <div></div> }.into_any()
@@ -60,12 +60,12 @@ pub fn ProjectsList(
                                                 if let Some(edit_callback) = on_edit {
                                                     let project_clone = project_for_edit.clone();
                                                     view! {
-                                                        <button
-                                                            on:click=move |_| edit_callback.run(project_clone.clone())
-                                                            class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                        <SecondaryButton
+                                                            size=ButtonSize::Small
+                                                            on_click=Box::new(move |_| edit_callback.run(project_clone.clone()))
                                                         >
                                                             "Edit"
-                                                        </button>
+                                                        </SecondaryButton>
                                                     }.into_any()
                                                 } else {
                                                     view! { <div></div> }.into_any()
@@ -76,8 +76,9 @@ pub fn ProjectsList(
                                                     let project_id = project_for_delete.id;
                                                     let project_title = project_for_delete.title.clone();
                                                     view! {
-                                                        <button
-                                                            on:click=move |_| {
+                                                        <DangerButton
+                                                            size=ButtonSize::Small
+                                                            on_click=Box::new(move |_| {
                                                                 if web_sys::window()
                                                                     .unwrap()
                                                                     .confirm_with_message(&format!("Are you sure you want to delete '{}'?", project_title))
@@ -85,11 +86,10 @@ pub fn ProjectsList(
                                                                 {
                                                                     delete_callback.run(project_id);
                                                                 }
-                                                            }
-                                                            class="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                                            })
                                                         >
                                                             "Delete"
-                                                        </button>
+                                                        </DangerButton>
                                                     }.into_any()
                                                 } else {
                                                     view! { <div></div> }.into_any()

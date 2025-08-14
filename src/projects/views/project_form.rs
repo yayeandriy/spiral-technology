@@ -10,6 +10,7 @@ use crate::projects::views::projects_list::ProjectsList;
 use crate::areas::areas_context::use_areas;
 use crate::areas::model::ProjectArea;
 use crate::catalog::catalog_context::use_catalog;
+use crate::ui::*;
 
 #[component]
 fn AreaSelector(
@@ -50,39 +51,25 @@ fn AreaSelector(
                                     let area_id = area.id;
                                     let area_title = area.title.clone();
                                     let area_desc = area.desc.clone();
+                                    let selected = Signal::derive(move || selected_areas.get().contains(&area_id));
                                     
                                     view! {
-                                        <div class="flex items-start space-x-3">
-                                            <input
-                                                type="checkbox"
-                                                id=format!("area_{}", area_id)
-                                                class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                                prop:checked=move || selected_areas.get().contains(&area_id)
-                                                on:change=move |_| {
-                                                    set_selected_areas.update(|areas| {
-                                                        if areas.contains(&area_id) {
-                                                            areas.remove(&area_id);
-                                                        } else {
-                                                            areas.insert(area_id);
-                                                        }
-                                                    });
-                                                }
-                                                disabled=is_submitting
-                                            />
-                                            <label 
-                                                for=format!("area_{}", area_id)
-                                                class="flex-1 cursor-pointer"
-                                            >
-                                                <div class="text-sm font-medium text-gray-900">
-                                                    {area_title}
-                                                </div>
-                                                {area_desc.map(|desc| view! {
-                                                    <div class="text-xs text-gray-500 mt-1">
-                                                        {desc}
-                                                    </div>
-                                                })}
-                                            </label>
-                                        </div>
+                                        <AreaCheckbox
+                                            area_id=area_id
+                                            title=area_title
+                                            description=area_desc
+                                            selected=selected
+                                            disabled=is_submitting.get()
+                                            on_change=Box::new(move |_| {
+                                                set_selected_areas.update(|areas| {
+                                                    if areas.contains(&area_id) {
+                                                        areas.remove(&area_id);
+                                                    } else {
+                                                        areas.insert(area_id);
+                                                    }
+                                                });
+                                            })
+                                        />
                                     }
                                 }).collect::<Vec<_>>()}
                             </div>
@@ -277,63 +264,56 @@ pub fn ProjectForm(
             <form on:submit=on_submit class="space-y-6">
                 // Title field
                 <div class="space-y-2">
-                    <label for="title" class="block text-sm font-medium text-gray-700">
-                        "Project Title" <span class="text-red-500">*</span>
-                    </label>
-                    <input
-                        node_ref=title_input_ref
-                        type="text"
-                        id="title"
-                        name="title"
-                        class=move || format!(
-                            "w-full px-3 py-2 text-black border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 {}",
-                            if title_error().is_some() { "border-red-300 focus:border-red-500" } else { "border-gray-300 focus:border-blue-500" }
-                        )
-                        placeholder="Enter project title..."
-                        prop:value=title
-                        on:input=move |ev| {
-                            set_title.set(event_target_value(&ev));
-                        }
-                        disabled=is_submitting
+                    <FieldLabel
+                        text="Project Title".to_string()
+                        for_="title".to_string()
+                        required=true
                     />
-                    {move || title_error().map(|error| view! {
-                        <p class="text-sm text-red-600">{error}</p>
+                    <TextInput
+                        value=title
+                        placeholder="Enter project title...".to_string()
+                        name="title".to_string()
+                        id="title".to_string()
+                        required=true
+                        disabled=is_submitting.get()
+                        state=if title_error().is_some() { InputState::Error } else { InputState::Normal }
+                        on_input=Box::new(move |ev| {
+                            set_title.set(event_target_value(&ev));
+                        })
+                        node_ref=title_input_ref
+                    />
+                    {title_error().map(|error| view! {
+                        <FieldError error=error.to_string() />
                     })}
                 </div>
                 
                 // Description field
                 <div class="space-y-2">
-                    <label for="desc" class="block text-sm font-medium text-gray-700">
-                        "Description"
-                    </label>
-                    <textarea
-                        id="desc"
-                        name="desc"
-                        rows="4"
-                        class=move || format!(
-                            "w-full px-3 py-2 border text-black rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 {}",
-                            if desc_error().is_some() { "border-red-300 focus:border-red-500" } else { "border-gray-300 focus:border-blue-500" }
-                        )
-                        placeholder="Enter project description (optional)..."
-                        prop:value=desc
-                        on:input=move |ev| {
+                    <FieldLabel
+                        text="Description".to_string()
+                        for_="desc".to_string()
+                    />
+                    <TextAreaWithCounter
+                        value=desc
+                        max_length=500
+                        placeholder="Enter project description (optional)...".to_string()
+                        name="desc".to_string()
+                        id="desc".to_string()
+                        rows=4
+                        disabled=is_submitting.get()
+                        state=if desc_error().is_some() { InputState::Error } else { InputState::Normal }
+                        on_input=Box::new(move |ev| {
                             set_desc.set(event_target_value(&ev));
-                        }
-                        disabled=is_submitting
-                    ></textarea>
-                    {move || desc_error().map(|error| view! {
-                        <p class="text-sm text-red-600">{error}</p>
+                        })
+                    />
+                    {desc_error().map(|error| view! {
+                        <FieldError error=error.to_string() />
                     })}
-                    <p class="text-xs text-gray-500">
-                        {move || format!("{}/500 characters", desc.get().len())}
-                    </p>
                 </div>
                 
                 // Areas selection field
                 <div class="space-y-2">
-                    <label class="block text-sm font-medium text-gray-700">
-                        "Project Areas"
-                    </label>
+                    <FieldLabel text="Project Areas".to_string() />
                     <div class="max-h-64 overflow-y-auto border border-gray-300 rounded-md p-3 bg-gray-50">
                         <AreaSelector 
                             areas=areas_context.areas.0
@@ -342,12 +322,13 @@ pub fn ProjectForm(
                             is_submitting=is_submitting
                         />
                     </div>
-                    <p class="text-xs text-gray-500">
-                        {move || {
-                            let count = selected_areas.get().len();
-                            format!("{} area{} selected", count, if count == 1 { "" } else { "s" })
-                        }}
-                    </p>
+                    {move || {
+                        let count = selected_areas.get().len();
+                        let message = format!("{} area{} selected", count, if count == 1 { "" } else { "s" });
+                        view! {
+                            <InfoMessage message=message />
+                        }
+                    }}
                 </div>
                 
                 // Validation errors
@@ -355,20 +336,7 @@ pub fn ProjectForm(
                     let errors = validation_errors.get();
                     if !errors.is_empty() {
                         view! {
-                            <div class="p-4 bg-red-50 border border-red-200 rounded-md">
-                                <div class="flex">
-                                    <div class="ml-3">
-                                        <h3 class="text-sm font-medium text-red-800">
-                                            "Please fix the following errors:"
-                                        </h3>
-                                        <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
-                                            {errors.into_iter().map(|error| view! {
-                                                <li>{error}</li>
-                                            }).collect::<Vec<_>>()}
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
+                            <ValidationErrors errors=errors />
                         }.into_any()
                     } else {
                         view! { <div></div> }.into_any()
@@ -380,31 +348,28 @@ pub fn ProjectForm(
                     {move || {
                         if let Some(_) = on_cancel {
                             view! {
-                                <button
-                                    type="button"
-                                    on:click=handle_cancel
-                                    disabled=is_submitting
-                                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                <CancelButton
+                                    on_click=Box::new(move |_| handle_cancel(()))
+                                    disabled=is_submitting.get()
                                 >
                                     "Cancel"
-                                </button>
+                                </CancelButton>
                             }.into_any()
                         } else {
                             view! { <div></div> }.into_any()
                         }
                     }}
                     
-                    <button
-                        type="submit"
-                        disabled=move || is_submitting.get() || !validation_errors.get().is_empty()
-                        class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    <PrimaryButton
+                        type_="submit".to_string()
+                        disabled=is_submitting.get() || !validation_errors.get().is_empty()
                     >
                         {move || if is_submitting.get() {
                             if is_edit_mode { "Updating..." } else { "Creating..." }
                         } else {
                             if is_edit_mode { "Update Project" } else { "Create Project" }
                         }}
-                    </button>
+                    </PrimaryButton>
                 </div>
             </form>
         </div>
