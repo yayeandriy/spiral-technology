@@ -1,4 +1,4 @@
-use crate::catalog::model::{ProjectCatalog};
+use crate::catalog::model::{ProjectAreaLink};
 use crate::supabase::{supabase_get, supabase_post, supabase_delete};
 use leptos::{
     logging,
@@ -22,7 +22,7 @@ use leptos::prelude::Get;
 
 #[derive(Clone)]
 pub struct CatalogContext {
-    pub catalog: (ReadSignal<Vec<ProjectCatalog>>, WriteSignal<Vec<ProjectCatalog>>),
+    pub catalog: (ReadSignal<Vec<ProjectAreaLink>>, WriteSignal<Vec<ProjectAreaLink>>),
     pub is_loading: (ReadSignal<bool>, WriteSignal<bool>),
     pub error: (ReadSignal<Option<String>>, WriteSignal<Option<String>>),
     url_path: String,
@@ -31,7 +31,7 @@ pub struct CatalogContext {
 impl CatalogContext {
     pub fn new() -> Self {
         Self {
-            catalog: signal::<Vec<ProjectCatalog>>(vec![]),
+            catalog: signal::<Vec<ProjectAreaLink>>(vec![]),
             is_loading: signal(false),
             error: signal(None),
             url_path: "/rest/v1/catalog?select=*".to_string(),
@@ -45,7 +45,7 @@ impl CatalogContext {
         self.error.1.update(|e| {
             *e = None;
         });
-        match supabase_get::<Vec<ProjectCatalog>>(&self.url_path).await {
+        match supabase_get::<Vec<ProjectAreaLink>>(&self.url_path).await {
             Ok(items) => {
                 logging::log!("Fetched catalog successfully: {:?}", items);
                 self.catalog.1.set(items);
@@ -64,7 +64,7 @@ impl CatalogContext {
             "area_id": area_id
         });
         
-        match supabase_post::<ProjectCatalog, serde_json::Value>("/rest/v1/catalog", &relation_data).await {
+        match supabase_post::<ProjectAreaLink, serde_json::Value>("/rest/v1/catalog", &relation_data).await {
             Ok(relation) => {
                 self.catalog.1.update(|catalog| {
                     catalog.push(relation);
@@ -117,7 +117,7 @@ impl CatalogContext {
         Ok(())
     }
 
-    pub async fn get_project_areas(&self, project_id: i64) -> Vec<i64> {
+    pub fn get_project_areas(&self, project_id: i64) -> Vec<i64> {
         let current_catalog = self.catalog.0.get();
         current_catalog
             .into_iter()

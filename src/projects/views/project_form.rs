@@ -111,7 +111,7 @@ pub fn ProjectForm(
             // First fetch catalog data
             catalog_context_for_load.fetch_catalog().await;
             // Then get areas for this project
-            let project_areas = catalog_context_for_load.get_project_areas(proj_id as i64).await;
+            let project_areas = catalog_context_for_load.get_project_areas(proj_id as i64);
             let area_ids: HashSet<i64> = project_areas.into_iter().collect();
             set_selected_areas_for_load.set(area_ids);
         });

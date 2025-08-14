@@ -61,10 +61,12 @@ impl AreaContext {
     }
 
     fn parse_categories(&self, items: Vec<ProjectArea>) {
-        let categories = items
+        let mut categories: Vec<ProjectCategory> = items
             .into_iter()
             .map(|item| item.category)
             .collect();
+        categories.sort();
+        categories.dedup();
         self.categories.1.set(categories);
         logging::log!("Parsed categories: {:?}", self.categories.0.get());
     }
@@ -147,6 +149,13 @@ impl AreaContext {
         }
         
         self.is_loading.1.try_update(|v| *v = false);
+    }
+
+    pub fn get_area_by_category(&self, category: &ProjectCategory) -> Vec<ProjectArea> {
+        self.areas.0.get().iter()
+            .filter(|area| &area.category == category)
+            .cloned()
+            .collect()
     }
 
 }
