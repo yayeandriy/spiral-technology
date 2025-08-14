@@ -21,8 +21,53 @@ pub fn App() -> impl IntoView {
         <ProjectProvider> 
             <Router>
                 <Routes fallback=|| "Page not found.">
+                 <Route path=path!("") view=|| view! {
+                     <AreaRoute>
+                     <CatalogRoute>
+                     <ProjectRoute>
+                         <HomePage />
+                     </ProjectRoute>
+                     </CatalogRoute>
+                     </AreaRoute>
+                 }/>
+                 
                  <ParentRoute 
-                        path=StaticSegment("/") 
+                        path=StaticSegment("/home") 
+                        view=||{ view! {
+                            <AreaRoute>
+                            <CatalogRoute>
+                            <ProjectRoute>
+                                <HomePage />
+                            </ProjectRoute>
+                            </CatalogRoute>
+                            </AreaRoute>
+                        }}
+                    >
+                    
+                        // <Route path=path!(":project_id")   
+                        // view=|| view! { 
+                        //    <ProjectRoute>
+                        //          <ProjectsEditor />
+                        //     </ProjectRoute>     
+                              
+                        // }/>
+
+                        // <Route path=path!("project-editor")  view=|| view! { 
+                        //    <ProjectRoute>
+                        //          <ProjectsEditor />
+                        //     </ProjectRoute>     
+                              
+                        // }/>
+                        // <Route path=path!("area-editor") view=|| view! {
+                        //     <AreaRoute>
+                        //         <CatalogEditor />
+                        //     </AreaRoute>
+                        // }/>
+
+                        <Route path=path!("about") view=AboutPage/>
+                    </ParentRoute>
+                 <ParentRoute 
+                        path=StaticSegment("/editor") 
                         view=||{ view! {
                             <AreaRoute>
                             <CatalogRoute>
@@ -40,7 +85,7 @@ pub fn App() -> impl IntoView {
                               
                         // }/>
 
-                        <Route path=path!("")  view=|| view! { 
+                        <Route path=path!("projects")  view=|| view! { 
                            <ProjectRoute>
                                  <ProjectsEditor />
                             </ProjectRoute>     
@@ -52,7 +97,6 @@ pub fn App() -> impl IntoView {
                             </AreaRoute>
                         }/>
 
-                        <Route path=path!("about") view=AboutPage/>
                     </ParentRoute>
                 </Routes>   
             </Router>
