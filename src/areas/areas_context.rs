@@ -1,4 +1,7 @@
+use crate::areas::model::{ProjectArea, ProjectCategory};
+use crate::supabase::supabase_get;
 use leptos::{
+    logging,
     prelude::{
         provide_context,
         signal,
@@ -13,17 +16,15 @@ use leptos::{
     task::spawn_local,
     *,
 };
-
 use std::sync::Arc;
 use leptos::prelude::Get;
-
-use crate::{areas::model::ProjectArea, supabase::supabase_get};
 
 
 
 #[derive(Clone)]
 pub struct AreaContext {
     pub areas: (ReadSignal<Vec<ProjectArea>>, WriteSignal<Vec<ProjectArea>>),
+    pub categories: (ReadSignal<Vec<ProjectCategory>>, WriteSignal<Vec<ProjectCategory>>),
     pub is_loading: (ReadSignal<bool>, WriteSignal<bool>),
     pub error: (ReadSignal<Option<String>>, WriteSignal<Option<String>>),
     url_path: String,
@@ -33,9 +34,10 @@ impl AreaContext {
     pub fn new() -> Self {
         Self {
             areas: signal::<Vec<ProjectArea>>(vec![]),
+            categories: signal::<Vec<ProjectCategory>>(vec![]),
             is_loading: signal(false),
             error: signal(None),
-            url_path: format!("/rest/v1/areas?select=*&host=eq.roboscope"),
+            url_path: "/rest/v1/areas?select=*".to_string(),
         }
     }
 
@@ -48,17 +50,25 @@ impl AreaContext {
         });
         match supabase_get::<Vec<ProjectArea>>(&self.url_path).await {
             Ok(items) => {
-                logging::log!("Fetched areas: {:?}", items);
+                logging::log!("Fetched areas successfully: {:?}", items);
+                self.parse_categories(items.clone());
                 self.areas.1.set(items);
             }
             Err(err) => {
-                logging::log!("Error fetching items: {}", err);
+                logging::log!("Error fetching areas: {}", err);
             }
         }
     }
 
+    fn parse_categories(&self, items: Vec<ProjectArea>) {
+        let categories = items
+            .into_iter()
+            .map(|item| item.category)
+            .collect();
+        self.categories.1.set(categories);
+        logging::log!("Parsed categories: {:?}", self.categories.0.get());
+    }
 
- 
 }
 
 #[component]

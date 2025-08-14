@@ -55,7 +55,6 @@ pub fn TablePage() -> impl IntoView {
     let rullers = move |area: ProjectComparisonArea, project: &Project| {
       let area_clone = area.clone();
        let stop_points = stop_points(area, project, width.get());
-        logging::log!("Stop points for project {}: {:?}", project.id, stop_points);
         let area_items = area_clone.get_items();
         let w = (5000.0 / area_items.len() as f64) as i32;
        let points =area_items.iter()
@@ -64,7 +63,6 @@ pub fn TablePage() -> impl IntoView {
         // let opacity = if stop_points.contains(&i) { "opacity-100" } else { "opacity-0" };
         let ml = if stop_points.contains(&i) { "" } else { "-ml-96" };
         let delay = 0.05 * project.id as f32;
-        logging::log!("Delay for project {}: {}", project.id, delay);
         view! {
             <div class=format!("flex overflow-x-hidden w-full justify-center items-center flex-row-reverse transition-all h-[30px] ease-out duration-[2s] ")
              style="background: linear-gradient(
