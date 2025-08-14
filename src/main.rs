@@ -1,6 +1,8 @@
 mod app;
 mod pages;
 mod projects;
+mod areas;
+mod supabase;
 use app::*;
 use leptos::{logging, mount};
 

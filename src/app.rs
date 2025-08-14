@@ -5,7 +5,7 @@ use leptos_router::{
     components::{ParentRoute, Route, Router, Routes}, path, StaticSegment
 };
 
-use crate::{pages::{about_page::AboutPage, home_page::HomePage}, projects::{project_page::ProjectPage, projects_context::{ProjectProvider, ProjectRoute}, table_page::TablePage}};
+use crate::{areas::areas_context::{AreaContextProvider, AreaRoute}, pages::{about_page::AboutPage, home_page::HomePage}, projects::{project_page::ProjectPage, projects_context::{ProjectProvider, ProjectRoute}, table_page::TablePage}};
 
 
 
@@ -16,13 +16,16 @@ pub fn App() -> impl IntoView {
     view! {
         <Stylesheet id="leptos" href="/style/output.css"/>
         <Link rel="icon" type_="image/png" href="/public/favicon.png" />
+        <AreaContextProvider>
         <ProjectProvider> 
             <Router>
                 <Routes fallback=|| "Page not found.">
                  <ParentRoute 
                         path=StaticSegment("/") 
                         view=||{ view! {
-                            <HomePage />
+                            <AreaRoute>
+                                <HomePage />
+                            </AreaRoute>
                         }}
                     >
                     
@@ -40,7 +43,7 @@ pub fn App() -> impl IntoView {
                 </Routes>   
             </Router>
         </ProjectProvider>   
-        
+        </AreaContextProvider>  
     }
 }
 
