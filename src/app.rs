@@ -5,7 +5,7 @@ use leptos_router::{
     components::{ParentRoute, Route, Router, Routes}, path, StaticSegment
 };
 
-use crate::{areas::areas_context::{AreaContextProvider, AreaRoute}, catalog::catalog_context::{CatalogContextProvider, CatalogRoute}, pages::{about_page::AboutPage, home_page::HomePage}, projects::{project_page::ProjectPage, projects_context::{ProjectProvider, ProjectRoute}, table_page::TablePage}};
+use crate::{areas::areas_context::{AreaContextProvider, AreaRoute}, catalog::{catalog_context::{CatalogContextProvider, CatalogRoute}, views::catalog_editor::CatalogEditor}, pages::{about_page::AboutPage, catalog_page::CatalogPage, home_page::HomePage}, projects::{projects_context::{ProjectProvider, ProjectRoute}, views::{projects_editor::ProjectsEditor, projects_list::ProjectsList}}};
 
 
 
@@ -26,21 +26,32 @@ pub fn App() -> impl IntoView {
                         view=||{ view! {
                             <AreaRoute>
                             <CatalogRoute>
-                                <HomePage />
+                                <CatalogPage />
                             </CatalogRoute>
                             </AreaRoute>
                         }}
                     >
                     
-                        <Route path=path!(":project_id")   
-                        view=|| view! { 
+                        // <Route path=path!(":project_id")   
+                        // view=|| view! { 
+                        //    <ProjectRoute>
+                        //          <ProjectsEditor />
+                        //     </ProjectRoute>     
+                              
+                        // }/>
+
+                        <Route path=path!("")  view=|| view! { 
                            <ProjectRoute>
-                                 <ProjectPage />
+                                 <ProjectsEditor />
                             </ProjectRoute>     
                               
                         }/>
+                        <Route path=path!("areas") view=|| view! {
+                            <AreaRoute>
+                                <CatalogEditor />
+                            </AreaRoute>
+                        }/>
 
-                        <Route path=path!("") view=TablePage/>
                         <Route path=path!("about") view=AboutPage/>
                     </ParentRoute>
                 </Routes>   

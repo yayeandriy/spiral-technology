@@ -1,5 +1,5 @@
 use crate::areas::model::{ProjectArea, ProjectCategory};
-use crate::supabase::supabase_get;
+use crate::supabase::{supabase_get, supabase_post, supabase_patch, supabase_delete};
 use leptos::{
     logging,
     prelude::{
@@ -67,6 +67,86 @@ impl AreaContext {
             .collect();
         self.categories.1.set(categories);
         logging::log!("Parsed categories: {:?}", self.categories.0.get());
+    }
+
+    pub async fn add_area(&self, title: String, category: String, desc: Option<String>) {
+        self.is_loading.1.try_update(|v| *v = true);
+        self.error.1.update(|e| *e = None);
+        
+        let new_area = serde_json::json!({
+            "title": title,
+            "category": category,
+            "desc": desc
+        });
+        
+        match supabase_post::<ProjectArea, serde_json::Value>("/rest/v1/areas", &new_area).await {
+            Ok(area) => {
+                self.areas.1.update(|areas| {
+                    areas.push(area);
+                });
+                // Refresh categories
+                let current_areas = self.areas.0.get();
+                self.parse_categories(current_areas);
+            }
+            Err(err) => {
+                logging::log!("Error adding area: {}", err);
+                self.error.1.set(Some(err));
+            }
+        }
+        
+        self.is_loading.1.try_update(|v| *v = false);
+    }
+
+    pub async fn update_area(&self, area: ProjectArea) {
+        self.is_loading.1.try_update(|v| *v = true);
+        self.error.1.update(|e| *e = None);
+        
+        let updated_area = serde_json::json!({
+            "title": area.title,
+            "category": area.category,
+            "desc": area.desc
+        });
+        
+        match supabase_patch::<ProjectArea, serde_json::Value>(&format!("/rest/v1/areas?id=eq.{}", area.id), &updated_area).await {
+            Ok(updated) => {
+                self.areas.1.update(|areas| {
+                    if let Some(pos) = areas.iter().position(|a| a.id == area.id) {
+                        areas[pos] = updated;
+                    }
+                });
+                // Refresh categories
+                let current_areas = self.areas.0.get();
+                self.parse_categories(current_areas);
+            }
+            Err(err) => {
+                logging::log!("Error updating area: {}", err);
+                self.error.1.set(Some(err));
+            }
+        }
+        
+        self.is_loading.1.try_update(|v| *v = false);
+    }
+
+    pub async fn delete_area(&self, area_id: i64) {
+        self.is_loading.1.try_update(|v| *v = true);
+        self.error.1.update(|e| *e = None);
+        
+        match supabase_delete(&format!("/rest/v1/areas?id=eq.{}", area_id)).await {
+            Ok(_) => {
+                self.areas.1.update(|areas| {
+                    areas.retain(|area| area.id != area_id);
+                });
+                // Refresh categories
+                let current_areas = self.areas.0.get();
+                self.parse_categories(current_areas);
+            }
+            Err(err) => {
+                logging::log!("Error deleting area: {}", err);
+                self.error.1.set(Some(err));
+            }
+        }
+        
+        self.is_loading.1.try_update(|v| *v = false);
     }
 
 }
