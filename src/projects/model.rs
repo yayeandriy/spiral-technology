@@ -404,7 +404,7 @@ impl fmt::Display for ClientType {
         write!(f, "{}", match self {
             ClientType::AerospaceAviation => "Aerospace & Aviation",
             ClientType::EnergyUtilities => "Energy & Utilities",
-            ClientType::ManufacturingIndustrial => "Manufacturing & Industrial",
+            ClientType::ManufacturingIndustrial => "Manufacturing",
             ClientType::TechnologyRnD => "Technology R&D",
             ClientType::MarketingTraining => "Marketing & Training",
             ClientType::InternalResearch => "Internal Research",

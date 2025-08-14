@@ -13,7 +13,7 @@ pub fn TablePage() -> impl IntoView {
     let area_items = |area: ProjectComparisonArea|
     area.get_items().into_iter().map(|item| {
         view! {
-            <div class="flex items-center justify-center text-center">
+            <div class="flex items-center justify-center text-center w-full">
                 <div class="w-full text-center">{format!("{}", item)}</div>                
             </div>
         }
@@ -63,12 +63,20 @@ pub fn TablePage() -> impl IntoView {
        .map(|(i, stop)| {
         // let opacity = if stop_points.contains(&i) { "opacity-100" } else { "opacity-0" };
         let ml = if stop_points.contains(&i) { "" } else { "-ml-96" };
-        let delay = i as i32;
+        let delay = 0.05 * project.id as f32;
         logging::log!("Delay for project {}: {}", project.id, delay);
         view! {
-            <div class=format!("flex overflow-x-hidden border-r border-white w-full justify-center items-end flex-row-reverse transition-all h-[30px] ease-out duration-[2s] ")
+            <div class=format!("flex overflow-x-hidden w-full justify-center items-center flex-row-reverse transition-all h-[30px] ease-out duration-[2s] ")
+             style="background: linear-gradient(
+                                  to bottom,
+                                  transparent 49%,   
+                                  #dfdfdf 49%,         
+                                  #dfdfdf 51%,         
+                                  transparent 51%    
+                                )"
             >
-                <div class=format!("h-2 w-2 delay-[{delay}s] rounded-full bg-black {ml} transition-all ease-out duration-[1s]") />
+                <div class=format!("h-2 w-2 relative  rounded-full bg-black {ml} transition-all ease-out duration-[1s]")
+                style=format!("transition-delay: {delay}s;") />
             </div>
         } 
        })
@@ -136,7 +144,7 @@ pub fn TablePage() -> impl IntoView {
                   move || area_items(current_area.0.get())
               }
           </div>
-        <ol class="-mt-1 w-full transition-all text-gray-500 hover:marker:text-zinc-800 cursor-pointer marker:text-zinc-200 marker:font-mono marker:font-normal">
+        <ol class="mt-3 w-full transition-all text-gray-500 hover:marker:text-zinc-800 cursor-pointer marker:text-zinc-200 marker:font-mono marker:font-normal">
                     {
                         move || projects().iter().map(|project| {
                             let project = project.clone();
