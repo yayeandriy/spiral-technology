@@ -55,7 +55,7 @@ impl ProjectContext {
         }   
     } 
 
-    pub async fn add_project(&self, title: String, desc: Option<String>) {
+    pub async fn add_project(&self, title: String, desc: Option<String>) -> Option<Project> {
         self.is_loading.1.try_update(|v| *v = true);
         self.error.1.update(|e| *e = None);
         let new_project = ProjectDto {
@@ -66,11 +66,13 @@ impl ProjectContext {
         match supabase_post::<Project, ProjectDto>(&format!("{}", self.url_path),&new_project).await  {
             Ok(item) => {                         
                 self.projects.1.update(|items| {
-                    items.push(item);
+                    items.push(item.clone());
                 });
+                Some(item)
             }
             Err(err) => {
-                logging::log!("Error fetching items: {}", err);
+                logging::log!("Error creating project: {}", err);
+                None
             }
         }
     }

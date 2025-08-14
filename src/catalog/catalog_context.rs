@@ -1,5 +1,5 @@
 use crate::catalog::model::{ProjectCatalog};
-use crate::supabase::supabase_get;
+use crate::supabase::{supabase_get, supabase_post, supabase_delete};
 use leptos::{
     logging,
     prelude::{
@@ -7,7 +7,6 @@ use leptos::{
         signal,
         use_context,
         Children,
-        Effect,
         ReadSignal,
         Set,
         Update,
@@ -55,6 +54,76 @@ impl CatalogContext {
                 logging::log!("Error fetching catalog: {}", err);
             }
         }
+    }
+
+    pub async fn add_project_area_relation(&self, project_id: i64, area_id: i64) -> Result<(), String> {
+        self.is_loading.1.try_update(|v| *v = true);
+        
+        let relation_data = serde_json::json!({
+            "project_id": project_id,
+            "area_id": area_id
+        });
+        
+        match supabase_post::<ProjectCatalog, serde_json::Value>("/rest/v1/catalog", &relation_data).await {
+            Ok(relation) => {
+                self.catalog.1.update(|catalog| {
+                    catalog.push(relation);
+                });
+                self.is_loading.1.try_update(|v| *v = false);
+                Ok(())
+            }
+            Err(err) => {
+                logging::log!("Error adding project-area relation: {}", err);
+                self.is_loading.1.try_update(|v| *v = false);
+                Err(err)
+            }
+        }
+    }
+
+    pub async fn remove_project_relations(&self, project_id: i64) -> Result<(), String> {
+        self.is_loading.1.try_update(|v| *v = true);
+        
+        let url = format!("/rest/v1/catalog?project_id=eq.{}", project_id);
+        match supabase_delete(&url).await {
+            Ok(_) => {
+                // Remove from local state
+                self.catalog.1.update(|catalog| {
+                    catalog.retain(|c| c.project_id != project_id);
+                });
+                self.is_loading.1.try_update(|v| *v = false);
+                Ok(())
+            }
+            Err(err) => {
+                logging::log!("Error removing project relations: {}", err);
+                self.is_loading.1.try_update(|v| *v = false);
+                Err(err)
+            }
+        }
+    }
+
+    pub async fn sync_project_areas(&self, project_id: i64, area_ids: std::collections::HashSet<i64>) -> Result<(), String> {
+        // First remove existing relations
+        if let Err(e) = self.remove_project_relations(project_id).await {
+            return Err(e);
+        }
+        
+        // Then add new relations
+        for area_id in area_ids {
+            if let Err(e) = self.add_project_area_relation(project_id, area_id).await {
+                return Err(e);
+            }
+        }
+        
+        Ok(())
+    }
+
+    pub async fn get_project_areas(&self, project_id: i64) -> Vec<i64> {
+        let current_catalog = self.catalog.0.get();
+        current_catalog
+            .into_iter()
+            .filter(|c| c.project_id == project_id)
+            .map(|c| c.area_id)
+            .collect()
     }
 
 

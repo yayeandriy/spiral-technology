@@ -9,7 +9,6 @@ use crate::projects::views::{project_form::ProjectFormPage, projects_list::Proje
 pub fn ProjectsEditor() -> impl IntoView {
   
     view! {
-        <ProjectsList />
         <ProjectFormPage />
     }
 }

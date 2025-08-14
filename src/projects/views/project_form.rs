@@ -2,10 +2,97 @@ use leptos::prelude::*;
 use leptos::html::Input;
 use leptos::task::spawn_local;
 use web_sys::SubmitEvent;
+use std::collections::HashSet;
 
 use crate::projects::projects_context::use_project;
 use crate::projects::model::Project;
 use crate::projects::views::projects_list::ProjectsList;
+use crate::areas::areas_context::use_areas;
+use crate::areas::model::ProjectArea;
+use crate::catalog::catalog_context::use_catalog;
+
+#[component]
+fn AreaSelector(
+    areas: ReadSignal<Vec<ProjectArea>>,
+    selected_areas: ReadSignal<HashSet<i64>>,
+    set_selected_areas: WriteSignal<HashSet<i64>>,
+    is_submitting: ReadSignal<bool>,
+) -> impl IntoView {
+    view! {
+        <div class="space-y-3">
+            {move || {
+                let areas_list = areas.get();
+                
+                // Group areas by category
+                let mut grouped_areas = std::collections::HashMap::new();
+                for area in areas_list {
+                    grouped_areas
+                        .entry(area.category.clone())
+                        .or_insert_with(Vec::new)
+                        .push(area);
+                }
+                
+                // Sort categories
+                let mut categories: Vec<String> = grouped_areas.keys().cloned().collect();
+                categories.sort();
+                
+                categories.into_iter().map(|category| {
+                    let areas_in_category = grouped_areas.get(&category).unwrap().clone();
+                    let category_name = category.clone();
+                    
+                    view! {
+                        <div class="mb-4">
+                            <h4 class="text-sm font-medium text-gray-700 mb-2 border-b border-gray-200 pb-1">
+                                {category_name}
+                            </h4>
+                            <div class="space-y-2 ml-2">
+                                {areas_in_category.into_iter().map(|area| {
+                                    let area_id = area.id;
+                                    let area_title = area.title.clone();
+                                    let area_desc = area.desc.clone();
+                                    
+                                    view! {
+                                        <div class="flex items-start space-x-3">
+                                            <input
+                                                type="checkbox"
+                                                id=format!("area_{}", area_id)
+                                                class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                                prop:checked=move || selected_areas.get().contains(&area_id)
+                                                on:change=move |_| {
+                                                    set_selected_areas.update(|areas| {
+                                                        if areas.contains(&area_id) {
+                                                            areas.remove(&area_id);
+                                                        } else {
+                                                            areas.insert(area_id);
+                                                        }
+                                                    });
+                                                }
+                                                disabled=is_submitting
+                                            />
+                                            <label 
+                                                for=format!("area_{}", area_id)
+                                                class="flex-1 cursor-pointer"
+                                            >
+                                                <div class="text-sm font-medium text-gray-900">
+                                                    {area_title}
+                                                </div>
+                                                {area_desc.map(|desc| view! {
+                                                    <div class="text-xs text-gray-500 mt-1">
+                                                        {desc}
+                                                    </div>
+                                                })}
+                                            </label>
+                                        </div>
+                                    }
+                                }).collect::<Vec<_>>()}
+                            </div>
+                        </div>
+                    }
+                }).collect::<Vec<_>>()
+            }}
+        </div>
+    }
+}
 
 #[component]
 pub fn ProjectForm(
@@ -14,6 +101,8 @@ pub fn ProjectForm(
     #[prop(optional)] on_cancel: Option<Callback<()>>,
 ) -> impl IntoView {
     let project_context = use_project();
+    let areas_context = use_areas();
+    let catalog_context = use_catalog();
     
     // Initialize form fields with existing project data if editing
     let (title, set_title) = signal(
@@ -22,8 +111,40 @@ pub fn ProjectForm(
     let (desc, set_desc) = signal(
         project.as_ref().and_then(|p| p.desc.clone()).unwrap_or_default()
     );
+    let (selected_areas, set_selected_areas) = signal::<HashSet<i64>>(HashSet::new());
     let (is_submitting, set_is_submitting) = signal(false);
     let (validation_errors, set_validation_errors) = signal::<Vec<String>>(vec![]);
+    
+    // Load existing project areas if editing
+    let project_id_for_areas = project.as_ref().map(|p| p.id);
+    if let Some(proj_id) = project_id_for_areas {
+        let catalog_context_for_load = catalog_context.clone();
+        let set_selected_areas_for_load = set_selected_areas.clone();
+        spawn_local(async move {
+            // First fetch catalog data
+            catalog_context_for_load.fetch_catalog().await;
+            // Then get areas for this project
+            let project_areas = catalog_context_for_load.get_project_areas(proj_id as i64).await;
+            let area_ids: HashSet<i64> = project_areas.into_iter().collect();
+            set_selected_areas_for_load.set(area_ids);
+        });
+    }
+    
+    // Load areas when component mounts
+    {
+        let areas_context = areas_context.clone();
+        spawn_local(async move {
+            areas_context.fetch_areas().await;
+        });
+    }
+    
+    // Helper function to sync project-area relations
+    let sync_project_areas = {
+        let catalog_context = catalog_context.clone();
+        move |project_id: i32, area_ids: HashSet<i64>| async move {
+            catalog_context.sync_project_areas(project_id as i64, area_ids).await
+        }
+    };
     
     // Refs for form elements
     let title_input_ref = NodeRef::<Input>::new();
@@ -73,6 +194,8 @@ pub fn ProjectForm(
         let project_context_clone = project_context.clone();
         let on_save_callback = on_save;
         let current_project = project.clone();
+        let selected_areas_value = selected_areas.get();
+        let sync_areas_fn = sync_project_areas.clone();
         
         spawn_local(async move {
             if is_edit_mode {
@@ -85,7 +208,13 @@ pub fn ProjectForm(
                         created_at: proj.created_at,
                     };
                     
+                    // Update project first
                     project_context_clone.update_project(updated_project.clone()).await;
+                    
+                    // Then sync areas
+                    if let Err(e) = sync_areas_fn(proj.id, selected_areas_value.clone()).await {
+                        leptos::logging::log!("Error syncing areas: {}", e);
+                    }
                     
                     if let Some(callback) = on_save_callback {
                         callback.run(updated_project);
@@ -93,17 +222,19 @@ pub fn ProjectForm(
                 }
             } else {
                 // Create new project
-                project_context_clone.add_project(title_value.clone(), desc_value.clone()).await;
-                
-                // Create a mock project for the callback (in real implementation, get from response)
-                if let Some(callback) = on_save_callback {
-                    let new_project = Project {
-                        id: 0, // This would come from the database response
-                        title: title_value,
-                        desc: desc_value,
-                        created_at: None,
-                    };
-                    callback.run(new_project);
+                if let Some(created_project) = project_context_clone.add_project(title_value.clone(), desc_value.clone()).await {
+                    // Sync areas for the new project
+                    if !selected_areas_value.is_empty() {
+                        if let Err(e) = sync_areas_fn(created_project.id, selected_areas_value.clone()).await {
+                            leptos::logging::log!("Error syncing areas for new project: {}", e);
+                        }
+                    }
+                    
+                    if let Some(callback) = on_save_callback {
+                        callback.run(created_project);
+                    }
+                } else {
+                    leptos::logging::log!("Failed to create project");
                 }
             }
             
@@ -195,6 +326,27 @@ pub fn ProjectForm(
                     })}
                     <p class="text-xs text-gray-500">
                         {move || format!("{}/500 characters", desc.get().len())}
+                    </p>
+                </div>
+                
+                // Areas selection field
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">
+                        "Project Areas"
+                    </label>
+                    <div class="max-h-64 overflow-y-auto border border-gray-300 rounded-md p-3 bg-gray-50">
+                        <AreaSelector 
+                            areas=areas_context.areas.0
+                            selected_areas=selected_areas
+                            set_selected_areas=set_selected_areas
+                            is_submitting=is_submitting
+                        />
+                    </div>
+                    <p class="text-xs text-gray-500">
+                        {move || {
+                            let count = selected_areas.get().len();
+                            format!("{} area{} selected", count, if count == 1 { "" } else { "s" })
+                        }}
                     </p>
                 </div>
                 
