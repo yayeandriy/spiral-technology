@@ -274,50 +274,71 @@ pub fn CatalogEditor() -> impl IntoView {
                 <div class="bg-white rounded-lg shadow-md p-6">
                     <h2 class="text-xl font-semibold mb-4">"Areas List"</h2>
                     
-                    <div class="space-y-3 max-h-96 overflow-y-auto">
+                    <div class="space-y-4 max-h-96 overflow-y-auto">
                         {move || {
                             let areas_list = area_context_for_list.areas.0.get();
                             let handle_edit_fn = handle_edit.clone();
                             let handle_delete_fn = handle_delete.clone();
                             
-                            areas_list.into_iter().map(|area| {
-                                let area_id = area.id;
-                                let area_title = area.title.clone();
-                                let area_category = area.category.clone();
-                                let area_desc = area.desc.clone();
-                                let area_for_edit = area.clone();
-                                
-                                let edit_fn = handle_edit_fn.clone();
-                                let delete_fn = handle_delete_fn.clone();
+                            // Group areas by category
+                            let mut grouped_areas = std::collections::HashMap::new();
+                            for area in areas_list {
+                                grouped_areas
+                                    .entry(area.category.clone())
+                                    .or_insert_with(Vec::new)
+                                    .push(area);
+                            }
+                            
+                            // Sort categories
+                            let mut categories: Vec<String> = grouped_areas.keys().cloned().collect();
+                            categories.sort();
+                            
+                            categories.into_iter().map(|category| {
+                                let areas_in_category = grouped_areas.get(&category).unwrap().clone();
+                                let category_name = category.clone();
                                 
                                 view! {
-                                    <div class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                                        <div class="flex justify-between items-start">
-                                            <div class="flex-1">
-                                                <h3 class="font-medium text-gray-900">{area_title.clone()}</h3>
-                                                <p class="text-sm text-blue-600 mt-1">
-                                                    <span class="bg-blue-100 px-2 py-1 rounded-full text-xs">
-                                                        {area_category.clone()}
-                                                    </span>
-                                                </p>
-                                                {area_desc.clone().map(|desc| view! {
-                                                    <p class="text-sm text-gray-600 mt-2">{desc}</p>
-                                                })}
-                                            </div>
-                                            <div class="flex gap-2 ml-4">
-                                                <button
-                                                    on:click=move |_| edit_fn(area_for_edit.clone())
-                                                    class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                >
-                                                    "Edit"
-                                                </button>
-                                                <button
-                                                    on:click=move |_| delete_fn(area_id, area_title.clone())
-                                                    class="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500"
-                                                >
-                                                    "Delete"
-                                                </button>
-                                            </div>
+                                    <div class="mb-6">
+                                        <h3 class="text-lg font-semibold text-gray-800 mb-3 border-b border-gray-300 pb-2">
+                                            {category_name}
+                                        </h3>
+                                        <div class="space-y-3">
+                                            {areas_in_category.into_iter().map(|area| {
+                                                let area_id = area.id;
+                                                let area_title = area.title.clone();
+                                                let area_desc = area.desc.clone();
+                                                let area_for_edit = area.clone();
+                                                
+                                                let edit_fn = handle_edit_fn.clone();
+                                                let delete_fn = handle_delete_fn.clone();
+                                                
+                                                view! {
+                                                    <div class="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors ml-4">
+                                                        <div class="flex justify-between items-start">
+                                                            <div class="flex-1">
+                                                                <h4 class="font-medium text-gray-900">{area_title.clone()}</h4>
+                                                                {area_desc.clone().map(|desc| view! {
+                                                                    <p class="text-sm text-gray-600 mt-2">{desc}</p>
+                                                                })}
+                                                            </div>
+                                                            <div class="flex gap-2 ml-4">
+                                                                <button
+                                                                    on:click=move |_| edit_fn(area_for_edit.clone())
+                                                                    class="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                                >
+                                                                    "Edit"
+                                                                </button>
+                                                                <button
+                                                                    on:click=move |_| delete_fn(area_id, area_title.clone())
+                                                                    class="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                                                >
+                                                                    "Delete"
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            }).collect::<Vec<_>>()}
                                         </div>
                                     </div>
                                 }
