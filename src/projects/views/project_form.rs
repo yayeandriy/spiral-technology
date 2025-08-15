@@ -3,6 +3,7 @@ use leptos::html::Input;
 use leptos::task::spawn_local;
 use web_sys::SubmitEvent;
 use std::collections::HashSet;
+use wasm_bindgen::prelude::*;
 
 use crate::projects::projects_context::use_project;
 use crate::projects::model::Project;
@@ -12,12 +13,23 @@ use crate::catalog::catalog_context::use_catalog;
 use crate::projects::views::project_content_editor::ProjectContentEditor;
 use crate::ui::*;
 
+#[derive(Clone, Debug, PartialEq)]
+enum AutoSaveStatus {
+    Idle,
+    Pending,
+    Saving,
+    Saved,
+    Error(String),
+}
+
 #[component]
 fn AreaSelector(
     areas: ReadSignal<Vec<ProjectArea>>,
     selected_areas: ReadSignal<HashSet<i64>>,
     set_selected_areas: WriteSignal<HashSet<i64>>,
     is_submitting: ReadSignal<bool>,
+    trigger_autosave: WriteSignal<bool>,
+    enable_autosave: bool,
 ) -> impl IntoView {
     // Track which categories are expanded (all collapsed by default)
     let (expanded_categories, set_expanded_categories) = signal::<HashSet<String>>(HashSet::new());
@@ -156,6 +168,10 @@ fn AreaSelector(
                                                                     areas.insert(area_id);
                                                                 }
                                                             });
+                                                            // Trigger autosave signal if enabled
+                                                            if enable_autosave {
+                                                                trigger_autosave.set(true);
+                                                            }
                                                         })
                                                     />
                                                 }
@@ -184,6 +200,10 @@ pub fn ProjectForm(
     let areas_context = use_areas();
     let catalog_context = use_catalog();
     
+    // Clone project for use in closures
+    let project_for_autosave = project.clone();
+    let is_edit_mode = project.is_some();
+    
     // Initialize form fields with existing project data if editing
     let (title, set_title) = signal(
         project.as_ref().map(|p| p.title.clone()).unwrap_or_default()
@@ -194,6 +214,12 @@ pub fn ProjectForm(
     let (selected_areas, set_selected_areas) = signal::<HashSet<i64>>(HashSet::new());
     let (is_submitting, set_is_submitting) = signal(false);
     let (validation_errors, set_validation_errors) = signal::<Vec<String>>(vec![]);
+    
+    // Autosave state
+    let (autosave_status, set_autosave_status) = signal(AutoSaveStatus::Idle);
+    let (autosave_timeout_id, set_autosave_timeout_id) = signal::<Option<i32>>(None);
+    let (area_autosave_trigger, set_area_autosave_trigger) = signal(false);
+    let autosave_delay_ms = 1500; // 1.5 seconds throttling
     
     // Load existing project areas if editing
     let project_id_for_areas = project.as_ref().map(|p| p.id);
@@ -226,10 +252,139 @@ pub fn ProjectForm(
         }
     };
     
+    // Autosave function (for project data and areas, not content)
+    let autosave_project_data = {
+        let project_context = project_context.clone();
+        let catalog_context = catalog_context.clone();
+        let set_autosave_status = set_autosave_status.clone();
+        let project_for_autosave = project_for_autosave.clone();
+        
+        move |title_val: Option<String>, desc_val: Option<String>, area_ids: Option<HashSet<i64>>| {
+            let project_context = project_context.clone();
+            let catalog_context = catalog_context.clone();
+            let set_autosave_status = set_autosave_status.clone();
+            let project_for_autosave = project_for_autosave.clone();
+            
+            spawn_local(async move {
+                // Only autosave if we're editing an existing project
+                if let Some(proj) = project_for_autosave {
+                    set_autosave_status.set(AutoSaveStatus::Saving);
+                    
+                    // Update project data if provided
+                    if let (Some(title_val), Some(desc_val)) = (title_val, desc_val) {
+                        let updated_project = Project {
+                            id: proj.id,
+                            title: title_val.trim().to_string(),
+                            desc: if desc_val.trim().is_empty() { 
+                                None 
+                            } else { 
+                                Some(desc_val.trim().to_string()) 
+                            },
+                            created_at: proj.created_at,
+                        };
+                        
+                        project_context.update_project(updated_project).await;
+                    }
+                    
+                    // Update areas if provided
+                    if let Some(area_ids) = area_ids {
+                        if let Err(e) = catalog_context.sync_project_areas(proj.id as i64, area_ids).await {
+                            leptos::logging::log!("Error syncing areas during autosave: {}", e);
+                            set_autosave_status.set(AutoSaveStatus::Error(e));
+                            return;
+                        }
+                    }
+                    
+                    set_autosave_status.set(AutoSaveStatus::Saved);
+                    
+                    // Reset to idle after 3 seconds
+                    {
+                        let set_autosave_status = set_autosave_status.clone();
+                        let callback = wasm_bindgen::closure::Closure::wrap(Box::new(move || {
+                            set_autosave_status.set(AutoSaveStatus::Idle);
+                        }) as Box<dyn FnMut()>);
+                        
+                        web_sys::window()
+                            .unwrap()
+                            .set_timeout_with_callback_and_timeout_and_arguments_0(
+                                callback.as_ref().unchecked_ref(),
+                                3000,
+                            )
+                            .unwrap();
+                            
+                        callback.forget();
+                    }
+                } else {
+                    // For new projects, just mark as pending (no save yet)
+                    set_autosave_status.set(AutoSaveStatus::Pending);
+                }
+            });
+        }
+    };
+    
+    // Throttled autosave trigger for project data
+    let trigger_autosave_data = {
+        let set_autosave_timeout_id = set_autosave_timeout_id.clone();
+        let autosave_project_data = autosave_project_data.clone();
+        let title = title.clone();
+        let desc = desc.clone();
+        
+        move || {
+            let set_autosave_timeout_id = set_autosave_timeout_id.clone();
+            let autosave_project_data = autosave_project_data.clone();
+            let title = title.clone();
+            let desc = desc.clone();
+            
+            // Clear existing timeout if any
+            if let Some(timeout_id) = autosave_timeout_id.get() {
+                web_sys::window()
+                    .unwrap()
+                    .clear_timeout_with_handle(timeout_id);
+            }
+            
+            // Set new timeout
+            let callback = wasm_bindgen::closure::Closure::wrap(Box::new(move || {
+                let title_val = title.get();
+                let desc_val = desc.get();
+                
+                // Basic validation before autosaving
+                if !title_val.trim().is_empty() && title_val.len() <= 100 && desc_val.len() <= 500 {
+                    autosave_project_data(Some(title_val), Some(desc_val), None);
+                }
+            }) as Box<dyn FnMut()>);
+            
+            let timeout_id = web_sys::window()
+                .unwrap()
+                .set_timeout_with_callback_and_timeout_and_arguments_0(
+                    callback.as_ref().unchecked_ref(),
+                    autosave_delay_ms,
+                )
+                .unwrap();
+                
+            callback.forget(); // Prevent cleanup
+            set_autosave_timeout_id.set(Some(timeout_id));
+        }
+    };
+    
+    // Effect to watch for area changes and trigger autosave
+    Effect::new({
+        let autosave_project_data = autosave_project_data.clone();
+        let selected_areas = selected_areas.clone();
+        let set_autosave_status = set_autosave_status.clone();
+        
+        move |_| {
+            if area_autosave_trigger.get() && is_edit_mode {
+                set_autosave_status.set(AutoSaveStatus::Pending);
+                let area_ids = selected_areas.get();
+                autosave_project_data(None, None, Some(area_ids));
+                // Reset the trigger
+                set_area_autosave_trigger.set(false);
+            }
+        }
+    });
+    
     // Refs for form elements
     let title_input_ref = NodeRef::<Input>::new();
-    
-    let is_edit_mode = project.is_some();
     
     // Validation function
     let validate_form = move || -> Vec<String> {
@@ -351,7 +506,59 @@ pub fn ProjectForm(
 
     view! {
         <div class="max-w-6xl mx-auto p-6 bg-white text-black rounded-lg shadow-md h-screen flex flex-col">
-            // <h2 class="text-2xl font-bold mb-6 text-gray-900">{form_title}</h2>
+            // Autosave status indicator
+            {move || {
+                if is_edit_mode {
+                    let status = autosave_status.get();
+                    match status {
+                        AutoSaveStatus::Idle => view! { <div></div> }.into_any(),
+                        AutoSaveStatus::Pending => view! {
+                            <div class="flex items-center justify-end mb-2 text-sm">
+                                <span class="text-yellow-600 flex items-center">
+                                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-yellow-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    "Changes pending..."
+                                </span>
+                            </div>
+                        }.into_any(),
+                        AutoSaveStatus::Saving => view! {
+                            <div class="flex items-center justify-end mb-2 text-sm">
+                                <span class="text-blue-600 flex items-center">
+                                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    "Saving..."
+                                </span>
+                            </div>
+                        }.into_any(),
+                        AutoSaveStatus::Saved => view! {
+                            <div class="flex items-center justify-end mb-2 text-sm">
+                                <span class="text-green-600 flex items-center">
+                                    <svg class="mr-2 h-4 w-4 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    "Changes saved"
+                                </span>
+                            </div>
+                        }.into_any(),
+                        AutoSaveStatus::Error(err) => view! {
+                            <div class="flex items-center justify-end mb-2 text-sm">
+                                <span class="text-red-600 flex items-center">
+                                    <svg class="mr-2 h-4 w-4 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                    </svg>
+                                    {format!("Save failed: {}", err)}
+                                </span>
+                            </div>
+                        }.into_any(),
+                    }
+                } else {
+                    view! { <div></div> }.into_any()
+                }
+            }}
             
             <form on:submit=on_submit class="flex-1 flex flex-col space-y-6">
             // Action buttons
@@ -401,8 +608,16 @@ pub fn ProjectForm(
                                 required=true
                                 disabled=is_submitting.get()
                                 state=if title_error().is_some() { InputState::Error } else { InputState::Normal }
-                                on_input=Box::new(move |ev| {
-                                    set_title.set(event_target_value(&ev));
+                                on_input=Box::new({
+                                    let trigger_autosave_data = trigger_autosave_data.clone();
+                                    move |ev| {
+                                        set_title.set(event_target_value(&ev));
+                                        // Only trigger autosave for existing projects
+                                        if is_edit_mode {
+                                            set_autosave_status.set(AutoSaveStatus::Pending);
+                                            trigger_autosave_data();
+                                        }
+                                    }
                                 })
                                 node_ref=title_input_ref
                             />
@@ -426,8 +641,16 @@ pub fn ProjectForm(
                                 rows=4
                                 disabled=is_submitting.get()
                                 state=if desc_error().is_some() { InputState::Error } else { InputState::Normal }
-                                on_input=Box::new(move |ev| {
-                                    set_desc.set(event_target_value(&ev));
+                                on_input=Box::new({
+                                    let trigger_autosave_data = trigger_autosave_data.clone();
+                                    move |ev| {
+                                        set_desc.set(event_target_value(&ev));
+                                        // Only trigger autosave for existing projects
+                                        if is_edit_mode {
+                                            set_autosave_status.set(AutoSaveStatus::Pending);
+                                            trigger_autosave_data();
+                                        }
+                                    }
                                 })
                             />
                             {desc_error().map(|error| view! {
@@ -445,6 +668,8 @@ pub fn ProjectForm(
                                 selected_areas=selected_areas
                                 set_selected_areas=set_selected_areas
                                 is_submitting=is_submitting
+                                trigger_autosave=set_area_autosave_trigger
+                                enable_autosave=is_edit_mode
                             />
                         </div>
                         {move || {
