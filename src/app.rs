@@ -5,7 +5,7 @@ use leptos_router::{
     components::{ParentRoute, Route, Router, Routes}, path, StaticSegment
 };
 
-use crate::{areas::{areas_context::{AreaContextProvider, AreaRoute}, views::areas_table::AreasTable}, catalog::{catalog_context::{CatalogContextProvider, CatalogRoute}, views::catalog_editor::CatalogEditor}, pages::{about_page::AboutPage, catalog_page::CatalogPage, home_page::HomePage}, projects::{projects_context::{ProjectProvider, ProjectRoute}, views::{projects_editor::ProjectsEditor, projects_list::ProjectsList}}};
+use crate::{areas::{areas_context::{AreaContextProvider, AreaRoute}, views::areas_table::AreasTable}, catalog::{catalog_context::{CatalogContextProvider, CatalogRoute}, views::catalog_editor::CatalogEditor}, pages::{about_page::AboutPage, editor_page::EditorPage, home_page::HomePage}, projects::{projects_context::{ProjectProvider, ProjectRoute}, views::{projects_editor::ProjectsEditor, projects_list::ProjectsList}}};
 
 
 
@@ -72,7 +72,9 @@ pub fn App() -> impl IntoView {
                         view=||{ view! {
                             <AreaRoute>
                             <CatalogRoute>
-                                <CatalogPage />
+                             <ProjectRoute>
+                                <EditorPage />
+                            </ProjectRoute>
                             </CatalogRoute>
                             </AreaRoute>
                         }}
@@ -86,6 +88,10 @@ pub fn App() -> impl IntoView {
                               
                         // }/>
 
+                        <Route path=path!("")  view=|| view! { 
+                            <ProjectsEditor />
+                            <CatalogEditor />
+                        }/>
                         <Route path=path!("projects")  view=|| view! { 
                            <ProjectRoute>
                                  <ProjectsEditor />

@@ -3,6 +3,7 @@ mod pages;
 mod projects;
 mod areas;
 mod catalog;
+mod content;
 mod supabase;
 mod ui;
 use app::*;
