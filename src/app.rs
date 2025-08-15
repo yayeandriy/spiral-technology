@@ -92,17 +92,6 @@ pub fn App() -> impl IntoView {
                             <ProjectsEditor />
                             <AreasEditor />
                         }/>
-                        <Route path=path!("projects")  view=|| view! { 
-                           <ProjectRoute>
-                                 <ProjectsEditor />
-                            </ProjectRoute>     
-                              
-                        }/>
-                        <Route path=path!("areas") view=|| view! {
-                            <AreaRoute>
-                                <AreasEditor />
-                            </AreaRoute>
-                        }/>
 
                     </ParentRoute>
                 </Routes>   
