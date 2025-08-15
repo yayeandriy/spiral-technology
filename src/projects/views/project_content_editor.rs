@@ -31,13 +31,19 @@ pub fn ProjectContentEditor() -> impl IntoView {
         leptos::logging::log!("ProjectContentEditor - Project ID: {:?}", 
             content_context_for_effect.project_id.0.get());
             
-        if let Some(content) = content_context_for_effect.project_content.0.get() {
+        // React to content changes - both when content loads AND when it's cleared
+        let current_content = content_context_for_effect.project_content.0.get();
+        
+        if let Some(content) = current_content {
             let text = content.text.unwrap_or_default();
             set_content_text.set(text.clone());
             set_has_unsaved_changes.set(false);
             leptos::logging::log!("ProjectContentEditor - Loaded existing content, length: {}", text.len());
         } else {
-            leptos::logging::log!("ProjectContentEditor - No existing content found");
+            // Clear the textarea when there's no content (new project or project with no content)
+            set_content_text.set(String::new());
+            set_has_unsaved_changes.set(false);
+            leptos::logging::log!("ProjectContentEditor - No content found, clearing textarea");
         }
     });
 

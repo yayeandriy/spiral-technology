@@ -170,13 +170,26 @@ pub fn ProjectContentRoute( children: Children) -> impl IntoView {
             .unwrap_or_default()
     };
     let project_content_context = use_project_content();
-    if let Ok(id) = project_id().parse::<i64>() {
-        project_content_context.set_project_id(id);
+    
+    // React to project ID changes
+    Effect::new(move || {
+        let current_project_id = project_id();
+        logging::log!("ProjectContentRoute - Project ID changed to: {}", current_project_id);
         
-        spawn_local(async move {
-            project_content_context.fetch_project_content().await;
-        });
-    }
+        if let Ok(id) = current_project_id.parse::<i64>() {
+            project_content_context.set_project_id(id);
+            
+            let context = project_content_context.clone();
+            spawn_local(async move {
+                context.fetch_project_content().await;
+            });
+        } else {
+            // Handle "new" project case - clear existing content
+            logging::log!("ProjectContentRoute - Clearing content for new project");
+            project_content_context.project_content.1.set(None);
+            project_content_context.project_id.1.set(None);
+        }
+    });
 
     children()
 }
