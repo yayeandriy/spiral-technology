@@ -1,11 +1,11 @@
 
-use leptos::{html::A, logging, prelude::*};
+use leptos::prelude::*;
 use leptos_meta::*;
 use leptos_router::{
     components::{ParentRoute, Route, Router, Routes}, path, StaticSegment
 };
 
-use crate::{areas::{areas_context::{AreaContextProvider, AreaRoute}, views::areas_table::AreasTable}, catalog::{catalog_context::{CatalogContextProvider, CatalogRoute}, views::catalog_editor::CatalogEditor}, pages::{about_page::AboutPage, editor_page::EditorPage, home_page::HomePage}, projects::{projects_context::{ProjectProvider, ProjectRoute}, views::{projects_editor::ProjectsEditor, projects_list::ProjectsList}}};
+use crate::{areas::{areas_context::{AreaContextProvider, AreaRoute}, views::{areas_table::AreasTable, areas_editor::AreasEditor}}, catalog::{catalog_context::{CatalogContextProvider, CatalogRoute}}, pages::{about_page::AboutPage, editor_page::EditorPage, home_page::HomePage}, projects::{projects_context::{ProjectProvider, ProjectRoute}, views::projects_editor::ProjectsEditor}};
 
 
 
@@ -60,7 +60,7 @@ pub fn App() -> impl IntoView {
                         // }/>
                         // <Route path=path!("area-editor") view=|| view! {
                         //     <AreaRoute>
-                        //         <CatalogEditor />
+                        //         <AreasEditor />
                         //     </AreaRoute>
                         // }/>
 
@@ -90,7 +90,7 @@ pub fn App() -> impl IntoView {
 
                         <Route path=path!("")  view=|| view! { 
                             <ProjectsEditor />
-                            <CatalogEditor />
+                            <AreasEditor />
                         }/>
                         <Route path=path!("projects")  view=|| view! { 
                            <ProjectRoute>
@@ -100,7 +100,7 @@ pub fn App() -> impl IntoView {
                         }/>
                         <Route path=path!("areas") view=|| view! {
                             <AreaRoute>
-                                <CatalogEditor />
+                                <AreasEditor />
                             </AreaRoute>
                         }/>
 

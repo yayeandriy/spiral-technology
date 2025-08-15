@@ -3,11 +3,11 @@ use leptos::task::spawn_local;
 
 use crate::areas::areas_context::use_areas;
 use crate::areas::model::ProjectArea;
-use crate::catalog::views::area_form::AreaForm;
+use crate::areas::views::area_form::AreaForm;
 use crate::ui::*;
 
 #[component]
-pub fn CatalogEditor() -> impl IntoView {
+pub fn AreasEditor() -> impl IntoView {
     let area_context = use_areas();
     
     // State for editing
