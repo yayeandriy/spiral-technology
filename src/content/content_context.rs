@@ -1,20 +1,13 @@
-use crate::{content::model::ProjectContent, supabase::{supabase_delete, supabase_get, supabase_patch, supabase_post}};
+use crate::{content::model::ProjectContent, projects::projects_context::ProjectURLParams, supabase::{supabase_delete, supabase_get, supabase_patch, supabase_post}};
 use leptos::{
     logging,
     prelude::{
-        provide_context,
-        signal,
-        use_context,
-        Children,
-        Effect,
-        ReadSignal,
-        Set,
-        Update,
-        WriteSignal,
+        provide_context, signal, use_context, Children, Effect, Read, ReadSignal, Set, Update, WriteSignal
     },
     task::spawn_local,
     *,
 };
+use leptos_router::hooks::use_params;
 use std::sync::Arc;
 use leptos::prelude::Get;
 
@@ -166,13 +159,24 @@ pub fn ProjectContentContextProvider(children: Children) -> impl IntoView {
 }
 
 #[component]
-pub fn ProjectContentRoute(project_id: i64, children: Children) -> impl IntoView {
+pub fn ProjectContentRoute( children: Children) -> impl IntoView {
+    let params = use_params::<ProjectURLParams>();
+    let project_id = move || {
+        params
+            .read()
+            .as_ref()
+            .ok()
+            .and_then(|params| params.project_id.clone())
+            .unwrap_or_default()
+    };
     let project_content_context = use_project_content();
-    project_content_context.set_project_id(project_id);
-    
-    spawn_local(async move {
-        project_content_context.fetch_project_content().await;
-    });
+    if let Ok(id) = project_id().parse::<i64>() {
+        project_content_context.set_project_id(id);
+        
+        spawn_local(async move {
+            project_content_context.fetch_project_content().await;
+        });
+    }
 
     children()
 }

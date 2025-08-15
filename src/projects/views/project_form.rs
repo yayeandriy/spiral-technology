@@ -9,6 +9,7 @@ use crate::projects::model::Project;
 use crate::areas::areas_context::use_areas;
 use crate::areas::model::ProjectArea;
 use crate::catalog::catalog_context::use_catalog;
+use crate::projects::views::project_content_editor::ProjectContentEditor;
 use crate::ui::*;
 
 #[component]
@@ -457,19 +458,7 @@ pub fn ProjectForm(
                 </div>
 
                 // Bottom section - Large text area (2/3 of remaining height)
-                <div class="flex-1 space-y-2" style="min-height: 60vh;">
-                    <FieldLabel
-                        text="Project Content".to_string()
-                        for_="content".to_string()
-                    />
-                    <textarea
-                        class="w-full h-full p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Enter your project content, notes, or any additional information..."
-                        name="content"
-                        id="content"
-                        disabled=is_submitting.get()
-                    />
-                </div>
+                <ProjectContentEditor />
                 
                 // Validation errors
                 {move || {

@@ -2,10 +2,10 @@
 use leptos::prelude::*;
 use leptos_meta::*;
 use leptos_router::{
-    components::{ParentRoute, Route, Router, Routes}, path, StaticSegment
+    components::{ParentRoute, Route, Router, Routes}, hooks::{use_params, use_params_map}, path, StaticSegment
 };
 
-use crate::{areas::{areas_context::{AreaContextProvider, AreaRoute}, views::areas_table::AreasTable}, catalog::{catalog_context::{CatalogContextProvider, CatalogRoute}}, pages::{about_page::AboutPage, editor_page::EditorPage, home_page::HomePage}, projects::{projects_context::{ProjectProvider, ProjectRoute}, views::{projects_editor::ProjectsEditor, project_edit_page::ProjectEditPage}}};
+use crate::{areas::{areas_context::{AreaContextProvider, AreaRoute}, views::areas_table::AreasTable}, catalog::catalog_context::{CatalogContextProvider, CatalogRoute}, content::content_context::{ProjectContentContextProvider, ProjectContentRoute}, pages::{about_page::AboutPage, editor_page::EditorPage, home_page::HomePage}, projects::{projects_context::{ProjectProvider, ProjectRoute, ProjectURLParams}, views::{project_edit_page::ProjectEditPage, projects_editor::ProjectsEditor}}};
 
 
 
@@ -19,6 +19,7 @@ pub fn App() -> impl IntoView {
         <CatalogContextProvider>
         <AreaContextProvider>
         <ProjectProvider> 
+        <ProjectContentContextProvider> 
             <Router>
                 <Routes fallback=|| "Page not found.">
                  <Route path=path!("") view=|| view! {
@@ -81,12 +82,16 @@ pub fn App() -> impl IntoView {
                     >
                     
                         <Route path=path!(":project_id")   
-                        view=|| view! { 
+                        view=||{ 
+                            
+                            view! { 
                            <ProjectRoute>
+                           <ProjectContentRoute>
                                  <ProjectEditPage />
-                            </ProjectRoute>     
+                            </ProjectContentRoute>
+                           </ProjectRoute>     
                               
-                        }/>
+                        }}/>
 
                         <Route path=path!("")  view=|| view! { 
                             <div />
@@ -95,6 +100,7 @@ pub fn App() -> impl IntoView {
                     </ParentRoute>
                 </Routes>   
             </Router>
+        </ProjectContentContextProvider>   
         </ProjectProvider>   
         </AreaContextProvider>  
         </CatalogContextProvider>  
