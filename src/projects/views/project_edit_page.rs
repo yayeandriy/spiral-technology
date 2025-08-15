@@ -46,7 +46,7 @@ pub fn ProjectEditPage() -> impl IntoView {
     };
 
     view! {
-        <div class="container mx-auto p-4 text-black">
+        <div class="min-h-screen bg-gray-50">
             {move || {
                 let is_creating_new = is_new_project();
                 let existing_project = project();
@@ -67,7 +67,7 @@ pub fn ProjectEditPage() -> impl IntoView {
 
                     view! {
                         <div>
-                            <h1 class="text-2xl font-bold mb-6 text-gray-800">{page_title}</h1>
+                            // <h1 class="text-2xl font-bold mb-6 text-gray-800">{page_title}</h1>
                             {
                                 if let Some(proj) = existing_project {
                                     view! {
