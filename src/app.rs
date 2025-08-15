@@ -5,7 +5,7 @@ use leptos_router::{
     components::{ParentRoute, Route, Router, Routes}, path, StaticSegment
 };
 
-use crate::{areas::{areas_context::{AreaContextProvider, AreaRoute}, views::{areas_table::AreasTable, areas_editor::AreasEditor}}, catalog::{catalog_context::{CatalogContextProvider, CatalogRoute}}, pages::{about_page::AboutPage, editor_page::EditorPage, home_page::HomePage}, projects::{projects_context::{ProjectProvider, ProjectRoute}, views::projects_editor::ProjectsEditor}};
+use crate::{areas::{areas_context::{AreaContextProvider, AreaRoute}, views::areas_table::AreasTable}, catalog::{catalog_context::{CatalogContextProvider, CatalogRoute}}, pages::{about_page::AboutPage, editor_page::EditorPage, home_page::HomePage}, projects::{projects_context::{ProjectProvider, ProjectRoute}, views::{projects_editor::ProjectsEditor, project_edit_page::ProjectEditPage}}};
 
 
 
@@ -80,17 +80,17 @@ pub fn App() -> impl IntoView {
                         }}
                     >
                     
-                        // <Route path=path!(":project_id")   
-                        // view=|| view! { 
-                        //    <ProjectRoute>
-                        //          <ProjectsEditor />
-                        //     </ProjectRoute>     
+                        <Route path=path!(":project_id")   
+                        view=|| view! { 
+                           <ProjectRoute>
+                                 <ProjectEditPage />
+                            </ProjectRoute>     
                               
-                        // }/>
+                        }/>
 
                         <Route path=path!("")  view=|| view! { 
+                            // <AreasEditor />
                             <ProjectsEditor />
-                            <AreasEditor />
                         }/>
 
                     </ParentRoute>

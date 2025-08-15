@@ -1,6 +1,6 @@
 use leptos::prelude::*;
 
-use crate::projects::{projects_context::use_project, views::{project_form::ProjectFormPage, projects_list::ProjectsList}};
+use crate::projects::{projects_context::use_project};
 
 
 

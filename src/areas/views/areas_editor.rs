@@ -29,8 +29,7 @@ pub fn AreasEditor() -> impl IntoView {
                             on_success=on_form_success
                         />
                     }
-                }}
-                
+                }}                                
                 // List Column
                 <AreasList on_edit=handle_edit />
         </div>

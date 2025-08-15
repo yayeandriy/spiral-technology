@@ -6,7 +6,6 @@ use std::collections::HashSet;
 
 use crate::projects::projects_context::use_project;
 use crate::projects::model::Project;
-use crate::projects::views::projects_list::ProjectsList;
 use crate::areas::areas_context::use_areas;
 use crate::areas::model::ProjectArea;
 use crate::catalog::catalog_context::use_catalog;
@@ -376,88 +375,3 @@ pub fn ProjectForm(
     }
 }
 
-
-// Example usage component
-#[component]
-pub fn ProjectFormPage() -> impl IntoView {
-    let (show_form, set_show_form) = signal(false);
-    let (current_project, set_current_project) = signal::<Option<Project>>(None);
-    let project_context = use_project();
-    
-    let handle_create = move |_| {
-        set_current_project.set(None);
-        set_show_form.set(true);
-    };
-    
-    let handle_edit = move |project: Project| {
-        set_current_project.set(Some(project));
-        set_show_form.set(true);
-    };
-    
-    let handle_delete = move |project_id: i32| {
-        let context = project_context.clone();
-        spawn_local(async move {
-            context.delete_project(project_id).await;
-        });
-    };
-    
-    let handle_save = move |_project: Project| {
-        set_show_form.set(false);
-        set_current_project.set(None);
-        // Optionally refetch projects or handle the saved project
-    };
-    
-    let handle_cancel = move |_| {
-        set_show_form.set(false);
-        set_current_project.set(None);
-    };
-
-    view! {
-        <div class="container mx-auto p-4 text-black">
-            {
-                let handle_save_clone = handle_save.clone();
-                let handle_cancel_clone = handle_cancel.clone();
-                let handle_create_clone = handle_create.clone();
-                let handle_edit_clone = handle_edit.clone();
-                let handle_delete_clone = handle_delete.clone();
-                
-                move || {
-                    if show_form.get() {
-                        let project_to_edit = current_project.get();
-                        let save_callback = handle_save_clone.clone();
-                        let cancel_callback = handle_cancel_clone.clone();
-                        if let Some(project) = project_to_edit {
-                            // Edit mode
-                            view! {
-                                <ProjectForm
-                                    project=project
-                                    on_save=Callback::new(save_callback)
-                                    on_cancel=Callback::new(cancel_callback)
-                                />
-                            }.into_any()
-                        } else {
-                            // Create mode
-                            view! {
-                                <ProjectForm
-                                    on_save=Callback::new(save_callback)
-                                    on_cancel=Callback::new(cancel_callback)
-                                />
-                            }.into_any()
-                        }
-                    } else {
-                        let create_callback = handle_create_clone.clone();
-                        let edit_callback = handle_edit_clone.clone();
-                        let delete_callback = handle_delete_clone.clone();
-                        view! {
-                            <ProjectsList 
-                                on_create=Callback::new(create_callback)
-                                on_edit=Callback::new(edit_callback)
-                                on_delete=Callback::new(delete_callback)
-                            />
-                        }.into_any()
-                    }
-                }
-            }
-        </div>
-    }
-}
