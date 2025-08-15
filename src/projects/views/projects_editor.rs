@@ -1,6 +1,6 @@
 use leptos::prelude::*;
 use leptos::task::spawn_local;
-use leptos_router::hooks::use_navigate;
+use leptos_router::{components::Outlet, hooks::use_navigate};
 
 use crate::projects::{
     model::Project, 
@@ -36,7 +36,7 @@ pub fn ProjectsEditor() -> impl IntoView {
     };
 
     view! {
-        <div class="container mx-auto p-4 text-black">
+        <div class="w-full">
             <ProjectsList 
                 on_create=Callback::new(handle_create)
                 on_edit=Callback::new(handle_edit)

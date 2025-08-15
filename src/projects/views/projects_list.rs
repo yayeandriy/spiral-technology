@@ -17,7 +17,6 @@ pub fn ProjectsList(
     view! {
         <div class="flex flex-col p-4 gap-4 w-[600px]" >
             <div class="flex justify-between items-center">
-                <h2 class="text-xl font-semibold">"Projects"</h2>
                 {move || {
                     if let Some(create_callback) = on_create {
                         view! {
