@@ -45,25 +45,6 @@ pub fn App() -> impl IntoView {
                         }}
                     >
                     
-                        // <Route path=path!(":project_id")   
-                        // view=|| view! { 
-                        //    <ProjectRoute>
-                        //          <ProjectsEditor />
-                        //     </ProjectRoute>     
-                              
-                        // }/>
-
-                        // <Route path=path!("project-editor")  view=|| view! { 
-                        //    <ProjectRoute>
-                        //          <ProjectsEditor />
-                        //     </ProjectRoute>     
-                              
-                        // }/>
-                        // <Route path=path!("area-editor") view=|| view! {
-                        //     <AreaRoute>
-                        //         <AreasEditor />
-                        //     </AreaRoute>
-                        // }/>
 
                         <Route path=path!("") view=AreasTable/>
                         <Route path=path!("about") view=AboutPage/>
