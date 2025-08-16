@@ -107,6 +107,8 @@ pub fn ProjectContentEditor() -> impl IntoView {
             rows=10
             show_content_info=true
             content_info=content_info
+            show_toolbar=true
+            show_settings=false
         />
     }
 }
