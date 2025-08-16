@@ -1,10 +1,11 @@
 use leptos::prelude::*;
 use leptos::task::spawn_local;
-use web_sys::SubmitEvent;
+use web_sys::{MouseEvent, SubmitEvent};
 use std::collections::HashSet;
 
 use crate::areas::areas_context::use_areas;
 use crate::areas::model::ProjectArea;
+use crate::ui::signal_button::{SCancelButton, SPrimaryButton};
 use crate::ui::*;
 
 #[component]
@@ -99,7 +100,7 @@ pub fn AreaForm(
         let area_context = area_context.clone();
         let on_success = on_success.clone();
         
-        move |ev: SubmitEvent| {
+        move |ev: MouseEvent| {
             ev.prevent_default();
             
             if form_title.get().trim().is_empty() || form_category.get().trim().is_empty() {
@@ -145,6 +146,18 @@ pub fn AreaForm(
             });
         }
     };
+
+    let handle_submit = move |ev: MouseEvent| {
+        ev.prevent_default();
+        on_submit(ev);
+    };
+
+    let handle_cancel = move |_| {
+        clear_form();
+        if let Some(callback) = on_success {
+            callback.run(());
+        }
+    };
     
     view! {
         <div class="bg-white rounded-lg shadow-md p-6">
@@ -152,7 +165,7 @@ pub fn AreaForm(
                 {if editing_id.is_some() { "Edit Area" } else { "Create New Area" }}
             </h2>
             
-            <form on:submit=on_submit class="space-y-4">
+            <form class="space-y-4">
                 <div>
                     <FieldLabel
                         text="Title".to_string()
@@ -191,15 +204,16 @@ pub fn AreaForm(
                 </div>
                 
                 <div class="flex justify-end gap-3">
-                    <CancelButton
-                        on_click=Box::new(move |_| clear_form())
+                    <SCancelButton
+                        on_click=handle_cancel
                         disabled=is_submitting.get()
                     >
                         "Cancel"
-                    </CancelButton>
-                    <PrimaryButton
+                    </SCancelButton>
+                    <SPrimaryButton
                         type_="submit".to_string()
                         disabled=is_submitting.get()
+                        on_click=handle_submit
                     >
                         {move || if is_submitting.get() { 
                             "Saving..." 
@@ -208,7 +222,7 @@ pub fn AreaForm(
                         } else { 
                             "Create Area" 
                         }}
-                    </PrimaryButton>
+                    </SPrimaryButton>
                 </div>
             </form>
         </div>

@@ -562,33 +562,7 @@ pub fn ProjectForm(
             
             <form on:submit=on_submit class="flex-1 flex flex-col space-y-6">
             // Action buttons
-                // <div class="flex justify-end space-x-4 pt-4">
-                //     {move || {
-                //         if let Some(_) = on_cancel {
-                //             view! {
-                //                 <CancelButton
-                //                     on_click=Box::new(move |_| handle_cancel(()))
-                //                     disabled=is_submitting.get()
-                //                 >
-                //                     "Cancel"
-                //                 </CancelButton>
-                //             }.into_any()
-                //         } else {
-                //             view! { <div></div> }.into_any()
-                //         }
-                //     }}
-                    
-                //     <PrimaryButton
-                //         type_="submit".to_string()
-                //         disabled=is_submitting.get() || !validation_errors.get().is_empty()
-                //     >
-                //         {move || if is_submitting.get() {
-                //             if is_edit_mode { "Updating..." } else { "Creating..." }
-                //         } else {
-                //             if is_edit_mode { "Update Project" } else { "Create Project" }
-                //         }}
-                //     </PrimaryButton>
-                // </div>
+               
                 // Top section with title/desc on left, areas on right
                 <div class="flex gap-8 flex-1">
                     // Left column - Title and Description
