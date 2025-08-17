@@ -9,6 +9,10 @@ use crate::{areas::{areas_context::{self, use_areas}, model::ProjectCategoryName
 pub fn ProjectAreasEditor(
     project_id: i32,
 ) -> impl IntoView {
+    let expanded_cat = signal(None::<ProjectCategoryName>);
+
+
+
     let catalog_context = use_catalog();
     let catalog_context_clone_2 = catalog_context.clone();
     let areas_context = use_areas();
@@ -63,7 +67,7 @@ pub fn ProjectAreasEditor(
            }
         }
     };
-
+    let areas_by_category_clone = areas_by_category.clone();
     let category_areas_selector = move |category: ProjectCategoryName| {
         let areas = areas_by_category().get(&category).cloned().unwrap_or_default();
         let toggle_area_clone = toggle_area.clone();
@@ -77,22 +81,65 @@ pub fn ProjectAreasEditor(
         )
     };
 
+   let selected_areas_by_cat = move |cat: ProjectCategoryName| {
+       let areas = areas_by_category_clone().get(&cat).cloned().unwrap_or_default();
+       project_areas.get().iter().filter(|area| areas.iter().any(|a| &a.title == *area))
+        .map(|area| view!{ <div class="uppercase tracking-wider text-[10px] max-w-24 truncate px-2 text-white bg-black rounded-[6px]" >{area.clone()}</div> }).collect_view()
+   };
+
 
 
     view! {
+        <div>
         {
             move || categories_clone().iter().map(|category| {
                 let category_clone = category.clone();
+                let category_clone_2 = category.clone();
+                let category_clone_3 = category.clone();
                 let category_areas_selector = category_areas_selector.clone();
+                let expanded_cat = expanded_cat.clone();
+                let expanded_cat_clone = expanded_cat.clone();
+                let is_cat_expanded = move || expanded_cat.0.get() == Some(category_clone_3.clone());
                 view! {
-                    <div class="mb-4">
-                        <div class="text-sm mb-1">{category_clone.clone()}</div>
-                        {category_areas_selector(category_clone).into_any()}
+                    <div class="border-b border-x w-full first:border-t first:rounded-t-[6px] p-2  hover:bg-gray-100 last:rounded-b-[6px]">
+                        <div class="text-sm mb-1 cursor-pointer transition-all flex justify-between"
+                        on:click=move |_| {
+                            if expanded_cat_clone.0.get() == Some(category_clone_2.clone()) {
+                                expanded_cat_clone.1.set(None);
+                            } else {
+                                expanded_cat_clone.1.set(Some(category_clone_2.clone()));
+                            }
+                        }
+                        >
+                            <div>
+                                {category_clone.clone()}
+                            </div>
+                            <div class="flex gap-1 justify-end" class:hidden=is_cat_expanded() >
+                                {selected_areas_by_cat(category_clone_2.clone()).into_any()}
+                            </div>
+                        </div>
+                        {
+                            {
+                                let category_for_check = category_clone.clone();
+                                move || {
+                                    if expanded_cat.0.get() == Some(category_for_check.clone()) {
+                                        view! {
+                                            {category_areas_selector(category_for_check.clone()).into_any()}
+                                        }.into_any()
+                                    } else {
+                                        view! {
+                                            <div/>
+                                        }.into_any()
+                                    }
+                                }
+                            }
+                        }
+                        
                     </div>
                 }
-            }).collect::<Vec<_>>()  
+            }).collect_view()
         }
-
+        </div>
                            
     }
 }

@@ -123,35 +123,33 @@ pub fn ProjectForm(
 
     view! {
         <div class="p-6 bg-white text-black w-full h-screen flex flex-col">
-            <div class="w-full flex flex-col space-y-6">
-                <div class="flex gap-8 flex-1">
-                    <div class="w-1/2 space-y-6">
-                        <div class="space-y-2">
-                            <InputField
-                                data_state=(*project_state_clone).clone()
-                                data_handle=(*handle_save_project_clone).clone()
-                                field_name="title".to_string()
-                            />
-                            <FormTextArea
-                                data_state=(*project_state_clone).clone()
-                                data_handle=(*handle_save_project_clone).clone()
-                                field_name="desc".to_string()
-                            />
-                            {
-                                if let Some(project_id) = project.as_ref().map(|p| p.id) {
-                                    view!{
-                                        <ProjectAreasEditor
-                                        project_id=project_id
-                                        />
-                                    }.into_any()
-                                }else{
-                                    view!{<div/>}.into_any()
-                                }
-                            }
-                        </div>
-                    </div>
+            <div class="flex space-x-4">
+                <div class="w-1/2 flex flex-col space-y-4">
+                    <InputField
+                        data_state=(*project_state_clone).clone()
+                        data_handle=(*handle_save_project_clone).clone()
+                        field_name="title".to_string()
+                    />
+                    <FormTextArea
+                        data_state=(*project_state_clone).clone()
+                        data_handle=(*handle_save_project_clone).clone()
+                        field_name="desc".to_string()
+                    />                           
                 </div>
-            </div>
+                <div class="grow transition-all" >
+                {
+                    if let Some(project_id) = project.as_ref().map(|p| p.id) {
+                        view!{
+                            <ProjectAreasEditor
+                            project_id=project_id
+                            />
+                        }.into_any()
+                    }else{
+                        view!{<div/>}.into_any()
+                    }
+                }
+                </div>
+        </div>
         </div>
     }
 }

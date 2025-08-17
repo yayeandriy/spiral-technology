@@ -7,7 +7,7 @@ pub fn SSelector<T: Send + Sync + Clone + PartialEq + ToString + 'static, F: Fn(
     mut on_click: F
 ) -> impl IntoView {
     view! {
-        <div class="rounded-[6px] p-2 bg-white w-full flex text-black flex-col gap-[2px] border">
+        <div class="rounded-[6px] p-2 bg-gray-100 w-full flex text-black flex-col gap-[2px] ">
             { 
                 options()
                 .into_iter()
