@@ -1,6 +1,6 @@
-use leptos::{logging, prelude::*};
+use leptos::prelude::*;
 
-use crate::{projects::views::project_edit_page::project_form::{ModifiedData, DataState}, ui::signal_button::SPrimaryButton};
+use crate::{projects::views::project_edit_page::project_form::DataState, ui::signal_button::SPrimaryButton};
 
 
 
@@ -10,8 +10,7 @@ pub fn InputField<T>(
     data_handle: impl FnMut() + 'static + Clone + Send, 
     field_name: String
 ) -> impl IntoView {
-    let project_state_clone = data_state.clone();
-    let value = project_state_clone.data.get(&field_name).map(|r| r);
+    let value = data_state.data.get(&field_name).map(|r| r);
 
     view! {
         {
@@ -25,7 +24,7 @@ pub fn InputField<T>(
                                     {
                                         move || {
                                             let mut save_handler = data_handle.clone();
-                                            if project_state_clone.is_modified.0.get().contains(&ModifiedData::Title) {
+                                            if data_state.is_modified.0.get().contains(&field_name) {
                                                 view! { 
                                                       <SPrimaryButton 
                                                         on_click=move |_| save_handler()>
