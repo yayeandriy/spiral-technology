@@ -1,4 +1,4 @@
-use crate::areas::model::{ProjectArea, ProjectCategory};
+use crate::areas::model::{ProjectArea, ProjectCategoryName};
 use crate::supabase::{supabase_get, supabase_post, supabase_patch, supabase_delete};
 use leptos::{
     logging,
@@ -24,7 +24,7 @@ use leptos::prelude::Get;
 #[derive(Clone)]
 pub struct AreaContext {
     pub areas: (ReadSignal<Vec<ProjectArea>>, WriteSignal<Vec<ProjectArea>>),
-    pub categories: (ReadSignal<Vec<ProjectCategory>>, WriteSignal<Vec<ProjectCategory>>),
+    pub categories: (ReadSignal<Vec<ProjectCategoryName>>, WriteSignal<Vec<ProjectCategoryName>>),
     pub is_loading: (ReadSignal<bool>, WriteSignal<bool>),
     pub error: (ReadSignal<Option<String>>, WriteSignal<Option<String>>),
     url_path: String,
@@ -34,7 +34,7 @@ impl AreaContext {
     pub fn new() -> Self {
         Self {
             areas: signal::<Vec<ProjectArea>>(vec![]),
-            categories: signal::<Vec<ProjectCategory>>(vec![]),
+            categories: signal::<Vec<ProjectCategoryName>>(vec![]),
             is_loading: signal(false),
             error: signal(None),
             url_path: "/rest/v1/areas?select=*".to_string(),
@@ -61,7 +61,7 @@ impl AreaContext {
     }
 
     fn parse_categories(&self, items: Vec<ProjectArea>) {
-        let mut categories: Vec<ProjectCategory> = items
+        let mut categories: Vec<ProjectCategoryName> = items
             .into_iter()
             .map(|item| item.category)
             .collect();
@@ -151,7 +151,7 @@ impl AreaContext {
         self.is_loading.1.try_update(|v| *v = false);
     }
 
-    pub fn get_area_by_category(&self, category: &ProjectCategory) -> Vec<ProjectArea> {
+    pub fn get_area_by_category(&self, category: &ProjectCategoryName) -> Vec<ProjectArea> {
         self.areas.0.get().iter()
             .filter(|area| &area.category == category)
             .cloned()

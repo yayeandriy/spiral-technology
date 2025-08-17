@@ -1,11 +1,14 @@
 use leptos::{logging, prelude::*};
 use leptos::task::spawn_local;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use crate::projects::projects_context::use_project;
 use crate::projects::model::Project;
 use crate::projects::views::project_edit_page::form_input_field::InputField;
 use crate::projects::views::project_edit_page::form_text_area::FormTextArea;
+use crate::projects::views::project_edit_page::project_areas_editor::ProjectAreasEditor;
+use crate::ui::s_selector::s_selector::SSelector;
 
 #[derive(Clone)]
 pub struct DataState<T> {
@@ -81,20 +84,27 @@ impl DataState<Project> {
             }
         }
     }
-}#[component]
+
+    pub fn listen_for_changes(&self) {
+        let s_clone = self.clone();
+        Effect::new(move || {
+            s_clone.check_modified();
+        });
+    }
+
+}
+
+#[component]
 pub fn ProjectForm(
     #[prop(optional)] project: Option<Project>,
 ) -> impl IntoView {
     let project_context = use_project();
     let mut project_state = DataState::new(project.clone());
     project_state.init_fields();
+    project_state.listen_for_changes();
 
-    let project_state_clone = project_state.clone();
-    Effect::new(move || {
-        project_state_clone.check_modified(); 
-    });
-    let project_state_clone = project_state.clone();
-    let project_state_clone_desc = project_state.clone();
+    let project_state_clone = Arc::new(project_state.clone());
+
     let handle_save_project = {
         let project_context = project_context.clone();
         move || {
@@ -107,30 +117,37 @@ pub fn ProjectForm(
             });
         }
     };
-    let handle_save_project_clone = handle_save_project.clone();
-    let handle_save_project_clone_desc = handle_save_project.clone();
-       view! {
+
+    let handle_save_project_clone = Arc::new(handle_save_project.clone());
+
+
+    view! {
         <div class="p-6 bg-white text-black w-full h-screen flex flex-col">
-           
-            
             <div class="w-full flex flex-col space-y-6">
-               
-                // Top section with title/desc on left, areas on right
                 <div class="flex gap-8 flex-1">
-                    // Left column - Title and Description
                     <div class="w-1/2 space-y-6">
-                        // Title field
                         <div class="space-y-2">
                             <InputField
-                                data_state=project_state_clone
-                                data_handle=handle_save_project_clone
+                                data_state=(*project_state_clone).clone()
+                                data_handle=(*handle_save_project_clone).clone()
                                 field_name="title".to_string()
                             />
                             <FormTextArea
-                                data_state=project_state_clone_desc
-                                data_handle=handle_save_project_clone_desc
+                                data_state=(*project_state_clone).clone()
+                                data_handle=(*handle_save_project_clone).clone()
                                 field_name="desc".to_string()
                             />
+                            {
+                                if let Some(project_id) = project.as_ref().map(|p| p.id) {
+                                    view!{
+                                        <ProjectAreasEditor
+                                        project_id=project_id
+                                        />
+                                    }.into_any()
+                                }else{
+                                    view!{<div/>}.into_any()
+                                }
+                            }
                         </div>
                     </div>
                 </div>
