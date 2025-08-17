@@ -505,7 +505,7 @@ pub fn ProjectForm(
     };
 
     view! {
-        <div class="max-w-6xl mx-auto p-6 bg-white text-black rounded-lg shadow-md h-screen flex flex-col">
+        <div class="p-6 bg-white text-black w-full h-screen flex flex-col">
             // Autosave status indicator
             {move || {
                 if is_edit_mode {
@@ -560,7 +560,7 @@ pub fn ProjectForm(
                 }
             }}
             
-            <form on:submit=on_submit class="flex-1 flex flex-col space-y-6">
+            <form on:submit=on_submit class="w-full flex flex-col space-y-6">
             // Action buttons
                
                 // Top section with title/desc on left, areas on right
