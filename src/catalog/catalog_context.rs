@@ -80,15 +80,15 @@ impl CatalogContext {
         }
     }
 
-    pub async fn remove_project_relations(&self, project_id: i64) -> Result<(), String> {
+    pub async fn remove_project_relations(&self, project_id: i64, area_id: i64) -> Result<(), String> {
         self.is_loading.1.try_update(|v| *v = true);
-        
-        let url = format!("/rest/v1/catalog?project_id=eq.{}", project_id);
+
+        let url = format!("/rest/v1/catalog?project_id=eq.{}&area_id=eq.{}", project_id, area_id);
         match supabase_delete(&url).await {
             Ok(_) => {
                 // Remove from local state
                 self.catalog.1.update(|catalog| {
-                    catalog.retain(|c| c.project_id != project_id);
+                    catalog.retain(|c| c.project_id != project_id || c.area_id != area_id);
                 });
                 self.is_loading.1.try_update(|v| *v = false);
                 Ok(())
@@ -101,23 +101,9 @@ impl CatalogContext {
         }
     }
 
-    pub async fn sync_project_areas(&self, project_id: i64, area_ids: std::collections::HashSet<i64>) -> Result<(), String> {
-        // First remove existing relations
-        if let Err(e) = self.remove_project_relations(project_id).await {
-            return Err(e);
-        }
-        
-        // Then add new relations
-        for area_id in area_ids {
-            if let Err(e) = self.add_project_area_relation(project_id, area_id).await {
-                return Err(e);
-            }
-        }
-        
-        Ok(())
-    }
+    
 
-    pub fn get_project_areas(&self, project_id: i64) -> Vec<i64> {
+    pub fn get_project_areas_ids(&self, project_id: i64) -> Vec<i64> {
         let current_catalog = self.catalog.0.get();
         current_catalog
             .into_iter()

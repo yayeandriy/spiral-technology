@@ -5,7 +5,7 @@ use leptos_router::{
     components::{ParentRoute, Route, Router, Routes}, hooks::{use_params, use_params_map}, path, StaticSegment
 };
 
-use crate::{areas::{areas_context::{AreaContextProvider, AreaRoute}, views::areas_table::AreasTable}, catalog::catalog_context::{CatalogContextProvider, CatalogRoute}, content::content_context::{ProjectContentContextProvider, ProjectContentRoute}, pages::{about_page::AboutPage, editor_page::EditorPage, home_page::HomePage}, projects::{projects_context::{ProjectProvider, ProjectRoute, ProjectURLParams}, views::{project_edit_page::ProjectEditPage, projects_editor::ProjectsEditor}}};
+use crate::{areas::{areas_context::{AreaContextProvider, AreaRoute}, views::areas_table::AreasTable}, catalog::catalog_context::{CatalogContextProvider, CatalogRoute}, content::content_context::{ProjectContentContextProvider, ProjectContentRoute}, pages::{about_page::AboutPage, editor_page::EditorPage, home_page::HomePage}, projects::{projects_context::{ProjectProvider, ProjectRoute, ProjectURLParams}, views::{self, project_edit_page::project_edit_page::ProjectEditPage}}};
 
 
 

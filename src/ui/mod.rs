@@ -8,6 +8,7 @@ pub mod signal_button;
 pub mod label;
 pub mod error;
 pub mod form;
+pub mod s_selector;
 
 pub use button::*;
 pub use input::*;

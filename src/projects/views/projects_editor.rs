@@ -36,12 +36,8 @@ pub fn ProjectsEditor() -> impl IntoView {
     };
 
     view! {
-        <div class="w-full">
             <ProjectsList 
                 on_create=Callback::new(handle_create)
-                on_edit=Callback::new(handle_edit)
-                on_delete=Callback::new(handle_delete)
             />
-        </div>
     }
 }

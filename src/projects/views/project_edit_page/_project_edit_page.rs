@@ -1,11 +1,10 @@
 use leptos::prelude::*;
 use leptos_router::hooks::{use_params_map, use_navigate};
 
-use crate::projects::{
+use crate::{areas::views::areas_editor::AreasEditor, projects::{
     model::Project,
-    projects_context::use_project,
-    views::project_form::ProjectForm,
-};
+    projects_context::use_project, views::project_edit_page::project_form::ProjectForm,
+}};
 
 #[component]
 pub fn ProjectEditPage() -> impl IntoView {
@@ -46,7 +45,8 @@ pub fn ProjectEditPage() -> impl IntoView {
     };
 
     view! {
-        <div class="min-h-screen bg-gray-50">
+        //  <AreasEditor />
+        <div class="min-h-screen grow">
             {move || {
                 let is_creating_new = is_new_project();
                 let existing_project = project();
@@ -63,10 +63,8 @@ pub fn ProjectEditPage() -> impl IntoView {
                         navigate_clone2("/editor", Default::default());
                     };
 
-                    let page_title = if is_creating_new { "Create New Project" } else { "Edit Project" };
 
                     view! {
-                        <div>
                             // <h1 class="text-2xl font-bold mb-6 text-gray-800">{page_title}</h1>
                             {
                                 if let Some(proj) = existing_project {
@@ -86,22 +84,18 @@ pub fn ProjectEditPage() -> impl IntoView {
                                     }
                                 }
                             }
-                        </div>
                     }.into_any()
                 } else {
                     // Project not found case (only when we have a specific ID that doesn't exist)
-                    let navigate_clone = navigate.clone();
                     view! {
                         <div class="text-center py-8">
                             <p class="text-gray-600">"Project not found"</p>
-                            <button 
+                            <a 
                                 class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                on:click=move |_| {
-                                    navigate_clone("/editor", Default::default());
-                                }
+                                href="/editor"
                             >
                                 "Back to Projects"
-                            </button>
+                            </a>
                         </div>
                     }.into_any()
                 }

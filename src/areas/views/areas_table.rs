@@ -3,7 +3,7 @@ use std::default;
 use leptos::prelude::*;
 use leptos_router::components::Outlet;
 
-use crate::{areas::{areas_context::{self, use_areas}, model::ProjectCategory}, catalog::catalog_context::{self, use_catalog}, projects::{projects_context::use_project, views::{projects_list::ProjectsList, projects_view::ProjectsView}}};
+use crate::{areas::{areas_context::{self, use_areas}, model::ProjectCategoryName}, catalog::catalog_context::{self, use_catalog}, projects::{projects_context::use_project, views::{projects_list::ProjectsList, projects_view::ProjectsView}}};
 
 
 
@@ -17,7 +17,7 @@ pub fn AreasTable() -> impl IntoView {
     let projects = move || project_context.projects.0.get();
     let catalog_context = use_catalog();
     let default_category = String::from("technologies");
-    let current_category = signal::<ProjectCategory>(default_category);
+    let current_category = signal::<ProjectCategoryName>(default_category);
 
     let areas_context_clone = areas_context.clone();
     let areas = move || areas_context.get_area_by_category(&current_category.0.get());
@@ -65,7 +65,7 @@ pub fn AreasTable() -> impl IntoView {
                 {
                     projects().iter().enumerate().map(|(project_index, project)| {
                         let project_clone = project.clone();
-                        let areas_ids = catalog_context.get_project_areas(project_clone.id as i64);
+                        let areas_ids = catalog_context.get_project_areas_ids(project_clone.id as i64);
                         project_line(areas_ids, project_index)
                     }).collect_view()
                 }
