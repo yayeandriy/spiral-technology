@@ -1,8 +1,6 @@
-use std::sync::Arc;
+use leptos::prelude::*;
 
-use leptos::{logging, prelude::*, reactive::spawn_local};
-
-use crate::{areas::{areas_context::{self, use_areas}, model::{ProjectArea, ProjectAreaDto}}, catalog::{self, catalog_context::{self, use_catalog}}, projects::{model::Project, views::project_edit_page::area_form::AreaForm}, ui::{s_selector::s_selector::SSelector, signal_button::{ButtonSize, SSecondaryButton}}};
+use crate::{areas::model::ProjectArea, projects::views::project_edit_page::area_form::AreaForm, ui::signal_button::{ButtonSize, SSecondaryButton}};
 
 
 #[component]
@@ -11,22 +9,21 @@ pub fn AreaEditor(
     area: Option<ProjectArea>,
     category: String,
 ) -> impl IntoView {
-    let open_form = signal(false);
+    // If an area is provided, automatically open the form for editing
+    let open_form = signal(area.is_some());
     let category_clone = category.clone();
     let open_area_editor = move || {
        open_form.1.set(true);
     };
 
-
     view! {
-        <div class="text-sm">
+        <div class="text-sm w-full flex-col">
             {
                 move || {
                     let area = area.clone();
                     let category = category_clone.clone();
                     let open_area_editor = open_area_editor.clone();
                     if open_form.0.get() {
-                        // let area_signal = signal(area);
                         if let Some(area) = area {  
                             view! {
                                 <AreaForm area = area category=category.clone()  />
@@ -35,25 +32,24 @@ pub fn AreaEditor(
                             view! {
                                 <AreaForm category=category.clone()  />
                             }.into_any()
-
                         }
                     } else {
                         view! {
+                            <div class="w-full flex justify-end">
                             <SSecondaryButton
                                 on_click=move |_| {
                                     open_area_editor();
                                 }
                                 size=ButtonSize::Small
                             >
-                                "Add Area"
+                                "➕"
                             </SSecondaryButton>
+                            </div>
                         }.into_any()
                     }
                 }
             }
-            
         </div>
-                           
     }
 }
 

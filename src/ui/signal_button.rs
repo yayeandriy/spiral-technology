@@ -20,7 +20,7 @@ impl ButtonVariant {
     pub fn classes(&self) -> &'static str {
         match self {
             ButtonVariant::Primary => "bg-black text-white border-transparent hover:bg-blue-700 focus:ring-blue-500",
-            ButtonVariant::Secondary => "bg-blue-100 text-blue-700 border-transparent hover:bg-blue-200 focus:ring-blue-500",
+            ButtonVariant::Secondary => "bg-gray-200 text-black hover:bg-slate-200 focus:ring-blue-500",
             ButtonVariant::Danger => "bg-red-100 text-red-700 border-transparent hover:bg-red-200 focus:ring-red-500",
             ButtonVariant::Cancel => "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 focus:ring-blue-500",
         }
@@ -30,7 +30,7 @@ impl ButtonVariant {
 impl ButtonSize {
     pub fn classes(&self) -> &'static str {
         match self {
-            ButtonSize::Small => "px-1 py-1 text-sm",
+            ButtonSize::Small => "px-1  w-8 h-[23px] text-[12px]",
             ButtonSize::Medium => "px-3 py-2 text-sm",
             ButtonSize::Large => "px-3 py-2 text-base",
         }

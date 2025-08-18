@@ -48,8 +48,6 @@ pub fn ProjectAreasEditor(
             areas.iter().filter(|area| ids.contains(&area.id)).map(|area| area.title.clone()).collect::<Vec<_>>()
         }
     });
-    
-    let area_to_edit = RwSignal::new(None::<ProjectArea>);
 
     view! {
         <div>
@@ -64,7 +62,6 @@ pub fn ProjectAreasEditor(
                         expanded_cat=expanded_cat
                         areas_by_category=areas_by_category
                         project_areas=project_areas
-                        area_to_edit=area_to_edit
                         catalog_context=catalog_context.clone()
                         all_areas=all_areas
                     />
@@ -82,7 +79,6 @@ fn CategorySection(
     expanded_cat: RwSignal<Option<String>>,
     areas_by_category: Signal<std::collections::HashMap<String, Vec<ProjectArea>>>,
     project_areas: Signal<Vec<String>>,
-    area_to_edit: RwSignal<Option<ProjectArea>>,
     catalog_context: std::sync::Arc<crate::catalog::catalog_context::CatalogContext>,
     all_areas: Signal<Vec<ProjectArea>>,
 ) -> impl IntoView {
@@ -96,6 +92,9 @@ fn CategorySection(
         move || areas_by_category.get().get(&category).cloned().unwrap_or_default()
     });
 
+    // Create a separate area_to_edit signal for this category
+    let local_area_to_edit = RwSignal::new(None::<ProjectArea>);
+
     view! {
         <div class="border-b border-x w-full first:border-t first:rounded-t-[6px] p-2  hover:bg-gray-100 last:rounded-b-[6px]">
             <div class="text-sm mb-1 cursor-pointer transition-all flex justify-between"
@@ -105,8 +104,12 @@ fn CategorySection(
                     let current_expanded = expanded_cat.get();
                     if current_expanded == Some(category.clone()) {
                         expanded_cat.set(None);
+                        // Clear the local area when collapsing
+                        local_area_to_edit.set(None);
                     } else {
                         expanded_cat.set(Some(category.clone()));
+                        // Clear any existing area when expanding
+                        local_area_to_edit.set(None);
                     }
                 }
             }
@@ -167,18 +170,18 @@ fn CategorySection(
                     }
                     {
                         view!{
-                            <div class="flex-col" >
+                            <div class="flex-col pt-2" >
                             <For
                                 each=move || category_areas.get()
                                 key=|area| area.id
                                 children=move |area| {
                                     let area_for_edit = area.clone();
                                     view!{
-                                        <div class="flex items-center justify-between">                
+                                        <div class="flex mb-[2px] items-center justify-between">                
                                             <SSecondaryButton 
                                             size=ButtonSize::Small
                                             on_click=move |_| {
-                                                area_to_edit.set(Some(area_for_edit.clone()));
+                                                local_area_to_edit.set(Some(area_for_edit.clone()));
                                             }>
                                                 {"✏️"}
                                             </SSecondaryButton>
@@ -192,14 +195,20 @@ fn CategorySection(
                 </div>
                 {
                     let category_for_editor = category.clone();
-                    move || if let Some(area) = area_to_edit.get() {
-                        view! {
-                            <div class="mt-2">
-                                <AreaEditor area=area category=category_for_editor.clone() />
-                            </div>
-                        }.into_any()
-                    } else {
-                        view! { <AreaEditor category={category_for_editor.clone()} /> }.into_any()
+                    move || {
+                        let area_to_pass = local_area_to_edit.get();
+                        match area_to_pass {
+                            Some(area) => view! {
+                                <div class="mt-2">
+                                    <AreaEditor area=area category=category_for_editor.clone() />
+                                </div>
+                            },
+                            None => view! {
+                                <div class="mt-2">
+                                    <AreaEditor category=category_for_editor.clone() />
+                                </div>
+                            }
+                        }
                     }
                 }
             </Show>
