@@ -16,7 +16,21 @@ pub struct DataState<T> {
     pub is_modified: (ReadSignal<Vec<String>>, WriteSignal<Vec<String>>),
     pub id: i32,
     pub created_at: String,
-    init_data: Option<T>,
+    pub init_data: Option<T>,
+}
+
+impl<T> Default for DataState<T> {
+    fn default() -> Self {
+        Self {
+            data: HashMap::new(),
+            is_modified: signal(vec![]),
+            id: 0,
+            created_at: String::new(),
+            init_data: None,
+        }
+    }
+
+
 }
 
 impl DataState<Project> {
@@ -40,7 +54,7 @@ impl DataState<Project> {
         }
     }
 
-    pub fn into_project(self) -> Project {
+    pub fn into_data(self) -> Project {
         Project {
             title: self.data.get("title").map(|(r, _)| r.get()).unwrap_or_default(),
             desc: Some(self.data.get("desc").map(|(r, _)| r.get()).unwrap_or_default()),
@@ -99,7 +113,7 @@ pub fn ProjectForm(
     #[prop(optional)] project: Option<Project>,
 ) -> impl IntoView {
     let project_context = use_project();
-    let mut project_state = DataState::new(project.clone());
+    let mut project_state = DataState::<Project>::new(project.clone());
     project_state.init_fields();
     project_state.listen_for_changes();
 
@@ -112,7 +126,7 @@ pub fn ProjectForm(
             let project_context = project_context.clone();
             let project_state = project_state.clone();
             spawn_local(async move {
-                    let updated_project = project_state.into_project();
+                    let updated_project = project_state.into_data();
                     project_context.update_project(updated_project).await;
             });
         }

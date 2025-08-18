@@ -20,8 +20,8 @@ impl ButtonVariant {
     pub fn classes(&self) -> &'static str {
         match self {
             ButtonVariant::Primary => "bg-black text-white border-transparent hover:bg-blue-700 focus:ring-blue-500",
-            ButtonVariant::Secondary => "bg-blue-100 text-blue-700 border-transparent hover:bg-blue-200 focus:ring-blue-500",
-            ButtonVariant::Danger => "bg-red-100 text-red-700 border-transparent hover:bg-red-200 focus:ring-red-500",
+            ButtonVariant::Secondary => "bg-gray-200 text-black hover:bg-slate-200 focus:ring-blue-500",
+            ButtonVariant::Danger => "border border-red-100 text-red-700 hover:bg-red-200 focus:ring-red-500",
             ButtonVariant::Cancel => "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 focus:ring-blue-500",
         }
     }
@@ -30,7 +30,7 @@ impl ButtonVariant {
 impl ButtonSize {
     pub fn classes(&self) -> &'static str {
         match self {
-            ButtonSize::Small => "px-1 py-1 text-sm",
+            ButtonSize::Small => "px-1  w-8 h-[23px] text-[12px]",
             ButtonSize::Medium => "px-3 py-2 text-sm",
             ButtonSize::Large => "px-3 py-2 text-base",
         }
@@ -128,6 +128,48 @@ pub fn SPrimaryButton(
 }
 }
 // Convenience components for common button types
+// Convenience components for common button types
+#[component]
+pub fn SSecondaryButton(
+    children: Children,
+    #[prop(default = ButtonSize::Medium)] size: ButtonSize,
+    #[prop(default = false)] disabled: bool,
+    #[prop(default = "button".to_string())] type_: String,
+    #[prop(optional)]
+    on_click: Option<impl FnMut(MouseEvent) + 'static>,
+    #[prop(default = "".to_string())] class: String,
+) -> impl IntoView {
+    view! {
+         {if let Some(handler) = on_click {
+            view! {
+                <SButton
+                    variant=ButtonVariant::Secondary
+                    size=size
+                    disabled=disabled
+                    type_=type_
+                    on_click=handler
+                    class=class
+                >
+                    {children()}
+                </SButton>
+            }
+        } else {
+             view! {
+            <SButton
+                variant=ButtonVariant::Secondary
+                size=size
+                disabled=disabled
+                type_=type_
+                class=class
+            >
+                {children()}
+            </SButton>
+        }
+        }
+    }
+}
+}
+// Convenience components for common button types
 #[component]
 pub fn SCancelButton(
     children: Children,
@@ -155,7 +197,47 @@ pub fn SCancelButton(
         } else {
              view! {
             <SButton
-                variant=ButtonVariant::Primary
+                variant=ButtonVariant::Cancel
+                size=size
+                disabled=disabled
+                type_=type_
+                class=class
+            >
+                {children()}
+            </SButton>
+        }
+        }
+    }
+}
+}
+#[component]
+pub fn SDangerButton(
+    children: Children,
+    #[prop(default = ButtonSize::Medium)] size: ButtonSize,
+    #[prop(default = false)] disabled: bool,
+    #[prop(default = "button".to_string())] type_: String,
+    #[prop(optional)]
+    on_click: Option<impl FnMut(MouseEvent) + 'static>,
+    #[prop(default = "".to_string())] class: String,
+) -> impl IntoView {
+    view! {
+         {if let Some(handler) = on_click {
+            view! {
+                <SButton
+                    variant=ButtonVariant::Danger
+                    size=size
+                    disabled=disabled
+                    type_=type_
+                    on_click=handler
+                    class=class
+                >
+                    {children()}
+                </SButton>
+            }
+        } else {
+             view! {
+            <SButton
+                variant=ButtonVariant::Danger
                 size=size
                 disabled=disabled
                 type_=type_
