@@ -1,5 +1,6 @@
 use leptos::{logging, prelude::*};
 use leptos::task::spawn_local;
+use core::hash;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -9,6 +10,7 @@ use crate::projects::views::project_edit_page::form_input_field::InputField;
 use crate::projects::views::project_edit_page::form_text_area::FormTextArea;
 use crate::projects::views::project_edit_page::project_areas_editor::ProjectAreasEditor;
 use crate::ui::s_selector::s_selector::SSelector;
+use crate::ui::signal_button::SDangerButton;
 
 #[derive(Clone)]
 pub struct DataState<T> {
@@ -34,7 +36,16 @@ impl<T> Default for DataState<T> {
 }
 
 impl DataState<Project> {
-    pub fn new(input_data: Option<Project>) -> Self {
+    pub fn new() -> Self {
+        Self {
+            data: HashMap::new(),
+            is_modified: signal(vec![]),
+            id: 0,
+            created_at: String::new(),
+            init_data: None,
+        }
+    }
+    pub fn from_data(input_data: Option<Project>) -> Self {
         Self {
             data: HashMap::new(),
             is_modified: signal(vec![]),
@@ -113,7 +124,11 @@ pub fn ProjectForm(
     #[prop(optional)] project: Option<Project>,
 ) -> impl IntoView {
     let project_context = use_project();
-    let mut project_state = DataState::<Project>::new(project.clone());
+    let mut project_state = if let Some(project) = project.clone() {
+        DataState::<Project>::from_data(Some(project))
+    } else {
+        DataState::<Project>::new()
+    };
     project_state.init_fields();
     project_state.listen_for_changes();
 
@@ -121,6 +136,7 @@ pub fn ProjectForm(
 
     let handle_save_project = {
         let project_context = project_context.clone();
+        let project_state = project_state.clone();
         move || {
             logging::log!("Saving project...");
             let project_context = project_context.clone();
@@ -131,38 +147,91 @@ pub fn ProjectForm(
             });
         }
     };
+    let navigate = leptos_router::hooks::use_navigate();
+
+    let handle_create_project = {
+        let project_context = project_context.clone();
+        let project_state = project_state.clone();
+        let navigate = navigate.clone();
+        move || {
+            logging::log!("Creating project...");
+            let project_context = project_context.clone();
+            let project_state = project_state.clone();
+            let navigate = navigate.clone();
+            spawn_local(async move {
+                    let updated_project = project_state.into_data();
+                    let created_project = project_context.add_project(updated_project).await;
+                    if let Some(created_project) = created_project {
+                        navigate(&format!("/editor/{}", created_project.id), Default::default());
+                    }
+            });
+        }
+    };
+
+    let handle_delete_project = {
+        let project_context = project_context.clone();
+        move |project_id: i32| {
+            logging::log!("Deleting project with ID: {}", project_id);
+             let project_context = project_context.clone();
+            spawn_local(async move {
+                project_context.delete_project(project_id).await;
+                navigate("/editor", Default::default());
+            });
+        }
+    };
 
     let handle_save_project_clone = Arc::new(handle_save_project.clone());
+    let handle_create_project_clone = Arc::new(handle_create_project.clone());
 
 
     view! {
         <div class="p-6 bg-white text-black w-full h-screen flex flex-col">
             <div class="flex space-x-4">
-                <div class="w-1/2 flex flex-col space-y-4">
-                    <InputField
-                        data_state=(*project_state_clone).clone()
-                        data_handle=(*handle_save_project_clone).clone()
-                        field_name="title".to_string()
-                    />
-                    <FormTextArea
-                        data_state=(*project_state_clone).clone()
-                        data_handle=(*handle_save_project_clone).clone()
-                        field_name="desc".to_string()
-                    />                           
-                </div>
-                <div class="grow transition-all" >
-                {
+               {
                     if let Some(project_id) = project.as_ref().map(|p| p.id) {
+                        let handle_delete_project = handle_delete_project.clone();
                         view!{
-                            <ProjectAreasEditor
-                            project_id=project_id
+                        <div class="w-1/2 flex flex-col space-y-4">
+                            <SDangerButton 
+                            on_click=move |_| {
+                                let handle_delete_project = handle_delete_project.clone();
+                                handle_delete_project(project_id);
+                            }
+                            >Delete project</SDangerButton>
+                            <InputField
+                                data_state=(*project_state_clone).clone()
+                                data_handle=(*handle_save_project_clone).clone()
+                                field_name="title".to_string()
                             />
-                        }.into_any()
+                            <FormTextArea
+                                data_state=(*project_state_clone).clone()
+                                data_handle=(*handle_save_project_clone).clone()
+                                field_name="desc".to_string()
+                            />                           
+                        </div>
+                        <div class="grow transition-all" >
+                    
+                                    <ProjectAreasEditor
+                                    project_id=project_id
+                                    />
+                                     </div>
+                                }.into_any()
                     }else{
-                        view!{<div/>}.into_any()
+                        view!{ <div class="w-1/2 flex flex-col space-y-4">
+                            <InputField
+                                data_state=(*project_state_clone).clone()
+                                data_handle=(*handle_create_project_clone).clone()
+                                field_name="title".to_string()
+                            />
+                            <FormTextArea
+                                data_state=(*project_state_clone).clone()
+                                data_handle=(*handle_create_project_clone).clone()
+                                field_name="desc".to_string()
+                            />                           
+                        </div>}.into_any()
                     }
                 }
-                </div>
+               
         </div>
         </div>
     }
