@@ -1,4 +1,5 @@
 use leptos::prelude::*;
+use leptos_router::hooks::use_navigate;
 
 use crate::projects::projects_context::use_project;
 use crate::projects::model::Project;
@@ -8,18 +9,22 @@ use crate::ui::*;
 
 #[component]
 pub fn ProjectsList(
-    #[prop(optional)] on_create: Option<Callback<()>>,
 ) -> impl IntoView {
     let project_context = use_project();
     let cloned_context = project_context.clone();
     let current_project_id = move || cloned_context.current_project_id.0.get();
     let cloned_context = project_context.clone();
     let projects = move || cloned_context.projects.0.get(); 
+
+    let navigate = use_navigate();
+    let navigate_create = navigate.clone();
+    
+    // Handle creating a new project - navigate to the create URL
     let handle_create = move |_| {
-        if let Some(create_callback) = on_create {
-            create_callback.run(());
-        }
+        navigate_create("/editor/new", Default::default());
     };
+
+
 
     view! {
         <div class="flex flex-col p-4 gap-4 w-[400px]" >
