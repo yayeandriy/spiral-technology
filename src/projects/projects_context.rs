@@ -55,12 +55,12 @@ impl ProjectContext {
         }   
     } 
 
-    pub async fn add_project(&self, title: String, desc: Option<String>) -> Option<Project> {
+    pub async fn add_project(&self, project: Project) -> Option<Project> {
         self.is_loading.1.try_update(|v| *v = true);
         self.error.1.update(|e| *e = None);
         let new_project = ProjectDto {
-            title,
-            desc,
+            title: project.title,
+            desc: project.desc,
             ..ProjectDto::default()
         };
         match supabase_post::<Project, ProjectDto>(&format!("{}", self.url_path),&new_project).await  {
