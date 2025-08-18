@@ -1,4 +1,4 @@
 pub mod areas_table;
-pub mod area_form;
-pub mod areas_editor;
 pub mod areas_list;
+pub mod area_editor;
+pub mod area_form;

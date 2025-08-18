@@ -1,6 +1,6 @@
 use leptos::{logging, prelude::*, reactive::spawn_local};
 
-use crate::{areas::{areas_context::use_areas, model::ProjectArea}, catalog::catalog_context::use_catalog, projects::views::project_edit_page::area_editor::AreaEditor, ui::{s_selector::s_selector::SSelector, signal_button::{ButtonSize, SSecondaryButton}}};
+use crate::{areas::{areas_context::use_areas, model::ProjectArea, views::area_editor::AreaEditor}, catalog::catalog_context::use_catalog,  ui::{s_selector::s_selector::SSelector, signal_button::{ButtonSize, SSecondaryButton}}};
 
 #[component]
 pub fn ProjectAreasEditor(

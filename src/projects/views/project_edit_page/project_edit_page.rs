@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use leptos_router::hooks::{use_params_map, use_navigate};
 
-use crate::{areas::views::areas_editor::AreasEditor, projects::{
+use crate::{ projects::{
     model::Project,
     projects_context::use_project, views::project_edit_page::project_form::ProjectForm,
 }};

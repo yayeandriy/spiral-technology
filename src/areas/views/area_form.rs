@@ -1,230 +1,249 @@
-use leptos::prelude::*;
-use leptos::task::spawn_local;
-use web_sys::{MouseEvent, SubmitEvent};
-use std::collections::HashSet;
+use std::{collections::HashMap, sync::Arc};
 
-use crate::areas::areas_context::use_areas;
-use crate::areas::model::ProjectArea;
-use crate::ui::signal_button::{SCancelButton, SPrimaryButton};
-use crate::ui::*;
+use leptos::{logging, prelude::*, reactive::spawn_local};
 
-#[component]
-fn CategorySelector(
-    areas: ReadSignal<Vec<ProjectArea>>,
-    form_category: ReadSignal<String>,
-    set_form_category: WriteSignal<String>,
-    is_submitting: ReadSignal<bool>,
-) -> impl IntoView {
-    view! {
-        <div>
-            {move || {
-                let areas_list = areas.get();
-                let unique_categories: HashSet<String> = areas_list
-                    .iter()
-                    .map(|area| area.category.clone())
-                    .collect();
-                let mut categories: Vec<String> = unique_categories.into_iter().collect();
-                categories.sort();
-                
-                view! {
-                    <div>
-                        <CategorySelect
-                            value=Signal::derive(move || form_category.get())
-                            categories=categories
-                            disabled=is_submitting.get()
-                            on_change=Box::new(move |ev| {
-                                let value = event_target_value(&ev);
-                                if value == "__custom__" {
-                                    set_form_category.set(String::new());
-                                } else {
-                                    set_form_category.set(value);
-                                }
-                            })
-                        />
-                    </div>
-                    
-                    // Custom category input (shown when custom category is needed)
-                    <Show when=move || {
-                        let current = form_category.get();
-                        let areas = areas.get();
-                        current == "__custom__" || (!current.is_empty() && !areas.iter().any(|area| area.category == current))
-                    }>
-                        <TextInput
-                            value=Signal::derive(move || {
-                                let current = form_category.get();
-                                if current == "__custom__" { String::new() } else { current }
-                            })
-                            placeholder="Enter new category name...".to_string()
-                            class="mt-2".to_string()
-                            disabled=is_submitting.get()
-                            on_input=Box::new(move |ev| set_form_category.set(event_target_value(&ev)))
-                        />
-                    </Show>
-                }
-            }}
-        </div>
+use crate::{areas::{areas_context::use_areas, model::{ProjectArea, ProjectAreaDto,}}, catalog::catalog_context::use_catalog, projects::{model::Project, views::project_edit_page::{form_input_field::InputField, form_text_area::FormTextArea, project_form::DataState}}, ui::signal_button::{ButtonSize, SCancelButton, SDangerButton}};
+
+
+
+
+impl DataState<ProjectArea> {
+    pub fn new(input_data: Option<ProjectArea>) -> Self {
+        Self {
+            data: HashMap::new(),
+            is_modified: signal(vec![]),
+            id: input_data.as_ref().map_or(0, |p| p.id as i32),
+            created_at: input_data.as_ref().map_or(String::new(), |p| p.created_at.clone().unwrap_or_default()),
+            init_data: input_data,
+        }
     }
+
+    pub fn init_fields(&mut self) {
+        if let Some(project) = &self.init_data {
+            self.data.insert("title".to_string(), signal(project.title.clone()));
+            self.data.insert("desc".to_string(), signal(project.desc.clone().unwrap_or_default()));
+        } else {
+            self.data.insert("title".to_string(), signal(String::new()));
+            self.data.insert("desc".to_string(), signal(String::new()));
+        }
+    }
+
+    pub fn into_data(self) -> ProjectArea{
+        ProjectArea {
+            title: self.data.get("title").map(|(r, _)| r.get()).unwrap_or_default(),
+            desc: Some(self.data.get("desc").map(|(r, _)| r.get()).unwrap_or_default()),
+            id: self.id as i64,
+            created_at: Some(self.created_at),
+            category: self.init_data.as_ref().map_or("no category".to_string(), |p| p.category.clone()),
+        }
+    }
+
+    fn get_init_value(&self, field_name: &str) -> String {
+        if let Some(project) = &self.init_data {
+            match field_name {
+                "title" => project.title.clone(),
+                "desc" => project.desc.clone().unwrap_or_default(),
+                _ => String::new(),
+            }
+        } else {
+            String::new()
+        }
+    }
+
+    pub fn check_modified(&self) {
+        logging::log!("Checking if project is modified...");
+        
+        // Clear the modified list
+        self.is_modified.1.set(vec![]);
+        
+        // Iterate through all fields in the data HashMap
+        for (field_name, (read_signal, _)) in &self.data {
+            let current_value = read_signal.get();
+            let init_value = self.get_init_value(field_name);
+            
+            logging::log!("Field '{}' - current: '{}', initial: '{}'", field_name, current_value, init_value);
+            
+            if current_value != init_value {
+                let field_name_clone = field_name.clone();
+                self.is_modified.1.update(|v| {
+                    if !v.contains(&field_name_clone) {
+                        v.push(field_name_clone);
+                    }
+                });
+            }
+        }
+    }
+
+    pub fn listen_for_changes(&self) {
+        let s_clone = self.clone();
+        Effect::new(move || {
+            s_clone.check_modified();
+        });
+    }
+
+    pub fn from_category(category: String) -> Self {
+        let init_data = ProjectArea {
+            id: 0,
+            title: String::new(),
+            desc: None,
+            created_at: Some(String::new()),
+            category,
+        };
+        Self {
+            data: HashMap::new(),
+            is_modified: signal(vec![]),
+            id: 0,
+            created_at: String::new(),
+            init_data: Some(init_data),
+        }
+    }
+
 }
+
+
+
 
 #[component]
 pub fn AreaForm(
-    editing_area: Option<ProjectArea>,
-    #[prop(optional, into)] on_success: Option<Callback<()>>,
+    #[prop(optional)]
+    area: Option<ProjectArea>,
+    category: String,
+    is_open: WriteSignal<bool>,
 ) -> impl IntoView {
-    let area_context = use_areas();
-    
-    // Form fields - initialize with editing data if provided
-    let (form_title, set_form_title) = signal(
-        editing_area.as_ref().map(|a| a.title.clone()).unwrap_or_default()
-    );
-    let (form_category, set_form_category) = signal(
-        editing_area.as_ref().map(|a| a.category.clone()).unwrap_or_default()
-    );
-    let (form_desc, set_form_desc) = signal(
-        editing_area.as_ref().and_then(|a| a.desc.clone()).unwrap_or_default()
-    );
-    let (is_submitting, set_is_submitting) = signal(false);
-    
-    // Track editing ID
-    let editing_id = editing_area.as_ref().map(|a| a.id);
-    
-    // Clear form
-    let clear_form = move || {
-        set_form_title.set(String::new());
-        set_form_category.set(String::new());
-        set_form_desc.set(String::new());
+    let catalog_context = use_catalog();
+    let areas_context = use_areas();
+    let areas_context_clone = areas_context.clone();
+
+    let area_clone = area.clone();
+
+    let mut area_state = if let Some(area) = area {
+        DataState::<ProjectArea>::new(Some(area))
+    } else {
+        DataState::<ProjectArea>::from_category(category)
     };
     
-    // Handle form submission
-    let on_submit = {
-        let area_context = area_context.clone();
-        let on_success = on_success.clone();
-        
-        move |ev: MouseEvent| {
-            ev.prevent_default();
-            
-            if form_title.get().trim().is_empty() || form_category.get().trim().is_empty() {
-                return;
-            }
-            
-            set_is_submitting.set(true);
-            
-            let title_value = form_title.get().trim().to_string();
-            let category_value = form_category.get().trim().to_string();
-            let desc_value = if form_desc.get().trim().is_empty() {
-                None
-            } else {
-                Some(form_desc.get().trim().to_string())
-            };
-            
-            let area_context_clone = area_context.clone();
-            let on_success_clone = on_success.clone();
-            
+    
+    area_state.init_fields();
+    area_state.listen_for_changes();
+
+    let area_state_clone = Arc::new(area_state.clone());
+    let area_state_clone_2 = Arc::new(area_state.clone());
+    let area_state_clone_3 = Arc::new(area_state.clone());
+
+   
+    let handle_create_area = {
+        let areas_context = areas_context_clone.clone();
+        let area_state_clone = area_state_clone_3.clone();
+        move || {
+            logging::log!("Saving project...");
+            let areas_context = areas_context.clone();
+            let area_state = area_state_clone.clone();
             spawn_local(async move {
-                if let Some(edit_id) = editing_id {
-                    // Update existing area
-                    let updated_area = ProjectArea {
-                        id: edit_id,
-                        created_at: None, // Will be preserved by the update
-                        title: title_value,
-                        category: category_value,
-                        desc: desc_value,
-                    };
-                    area_context_clone.update_area(updated_area).await;
-                } else {
-                    // Create new area
-                    area_context_clone.add_area(title_value, category_value, desc_value).await;
-                }
-                
-                set_is_submitting.set(false);
-                clear_form();
-                
-                // Call success callback if provided
-                if let Some(callback) = on_success_clone {
-                    callback.run(());
-                }
+                    let updated_area = <DataState<ProjectArea> as Clone>::clone(&area_state).into_data();
+                    areas_context.create_area(updated_area).await;
             });
         }
     };
-
-    let handle_submit = move |ev: MouseEvent| {
-        ev.prevent_default();
-        on_submit(ev);
-    };
-
-    let handle_cancel = move |_| {
-        clear_form();
-        if let Some(callback) = on_success {
-            callback.run(());
+   
+    let handle_update_area = {
+        let areas_context = areas_context_clone.clone();
+        let area_state_clone = area_state_clone_3.clone();
+        move || {
+            logging::log!("Saving project...");
+            let areas_context = areas_context.clone();
+            let area_state = area_state_clone.clone();
+            spawn_local(async move {
+                    let updated_area = <DataState<ProjectArea> as Clone>::clone(&area_state).into_data();
+                    areas_context.update_area(updated_area).await;
+            });
         }
     };
-    
+    let handle_delete_area = {
+        let areas_context = areas_context_clone.clone();
+        let area_state_clone = area_state_clone_3.clone();
+        move || {
+            logging::log!("Saving project...");
+            let areas_context = areas_context.clone();
+            let area_state = area_state_clone.clone();
+            spawn_local(async move {
+                    let updated_area = <DataState<ProjectArea> as Clone>::clone(&area_state).into_data();
+                    
+                    areas_context.delete_area(updated_area.id).await;
+            });
+            is_open.set(false);
+        }
+    };
+
+    let handle_create_area_clone = Arc::new(handle_create_area.clone());
+    let handle_update_area_clone = Arc::new(handle_update_area.clone());
+
     view! {
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h2 class="text-xl font-semibold mb-4">
-                {if editing_id.is_some() { "Edit Area" } else { "Create New Area" }}
-            </h2>
-            
-            <form class="space-y-4">
-                <div>
-                    <FieldLabel
-                        text="Title".to_string()
-                        required=true
+        <div class="">
+            <div class="w-full flex flex-col space-y-4">
+            {
+                if area_clone.is_some() {
+                    view! {
+                         <InputField
+                        data_state=(*area_state_clone).clone()
+                        data_handle=(*handle_update_area_clone).clone()
+                        field_name="title".to_string()
                     />
-                    <TextInput
-                        value=Signal::derive(move || form_title.get())
-                        placeholder="Enter area title...".to_string()
-                        disabled=is_submitting.get()
-                        on_input=Box::new(move |ev| set_form_title.set(event_target_value(&ev)))
+                    <FormTextArea
+                        data_state=(*area_state_clone).clone()
+                        data_handle=(*handle_update_area_clone).clone()
+                        field_name="desc".to_string()
+                    />             
+                    }.into_any()
+                } else {
+                    view! {
+                        <InputField
+                        data_state=(*area_state_clone).clone()
+                        data_handle=(*handle_create_area_clone).clone()
+                        field_name="title".to_string()
                     />
+                    <FormTextArea
+                        data_state=(*area_state_clone).clone()
+                        data_handle=(*handle_create_area_clone).clone()
+                        field_name="desc".to_string()
+                    />             
+                    }.into_any()
+                }
+            }
+                                 
                 </div>
-                
-                <div>
-                    <FieldLabel
-                        text="Category".to_string()
-                        required=true
-                    />
-                    <CategorySelector 
-                        areas=area_context.areas.0
-                        form_category=form_category
-                        set_form_category=set_form_category
-                        is_submitting=is_submitting
-                    />
+                <div class="flex justify-between mt-1">
+                    {
+                        if let Some(area) = area_clone {
+                            if area.id > 0 {
+                                view!{
+                                     <SDangerButton
+                                        size=ButtonSize::Small
+                                        on_click=move |_| {
+                                            logging::log!("Canceling area edit...");
+                                            handle_delete_area();                                                                                        
+                                        }
+                                        >"🗑️"</SDangerButton>
+                                }.into_any( )
+                            } else {
+                                view!{<div class="grow" />}.into_any()
+                            }
+                        }else{
+                            view!{<div class="grow" />}.into_any()
+                        }
+                    }
+                   
+                    
+                    <SCancelButton 
+                    size=ButtonSize::Small
+                    on_click=move |_| {
+                        logging::log!("Canceling area edit...");
+                        is_open.set(false);
+                    }
+                    >"╳"</SCancelButton>
+                    
                 </div>
-                
-                <div>
-                    <FieldLabel text="Description".to_string() />
-                    <TextArea
-                        value=Signal::derive(move || form_desc.get())
-                        placeholder="Optional description...".to_string()
-                        rows=3
-                        disabled=is_submitting.get()
-                        on_input=Box::new(move |ev| set_form_desc.set(event_target_value(&ev)))
-                    />
-                </div>
-                
-                <div class="flex justify-end gap-3">
-                    <SCancelButton
-                        on_click=handle_cancel
-                        disabled=is_submitting.get()
-                    >
-                        "Cancel"
-                    </SCancelButton>
-                    <SPrimaryButton
-                        type_="submit".to_string()
-                        disabled=is_submitting.get()
-                        on_click=handle_submit
-                    >
-                        {move || if is_submitting.get() { 
-                            "Saving..." 
-                        } else if editing_id.is_some() { 
-                            "Update Area" 
-                        } else { 
-                            "Create Area" 
-                        }}
-                    </SPrimaryButton>
-                </div>
-            </form>
         </div>
+                           
     }
 }
+

@@ -1,6 +1,6 @@
 use leptos::prelude::*;
 
-use crate::{areas::model::ProjectArea, projects::views::project_edit_page::area_form::AreaForm, ui::signal_button::{ButtonSize, SSecondaryButton}};
+use crate::{areas::{model::ProjectArea, views::area_form::AreaForm}, ui::signal_button::{ButtonSize, SSecondaryButton}};
 
 
 #[component]
