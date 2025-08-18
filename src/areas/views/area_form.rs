@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use leptos::{logging, prelude::*, reactive::spawn_local};
 
-use crate::{areas::{areas_context::use_areas, model::{ProjectArea, ProjectAreaDto,}}, catalog::catalog_context::use_catalog, projects::{model::Project, views::project_edit_page::{form_input_field::InputField, form_text_area::FormTextArea, project_form::DataState}}, ui::signal_button::{ButtonSize, SCancelButton, SDangerButton}};
+use crate::{areas::{areas_context::use_areas, model::ProjectArea}, catalog::catalog_context::use_catalog, shared::data_state_model::DataState, ui::{button::{ButtonSize, CancelButton, DangerButton}, form::{form_input_field::InputField, form_text_area::FormTextArea}}};
 
 
 
@@ -216,13 +216,13 @@ pub fn AreaForm(
                         if let Some(area) = area_clone {
                             if area.id > 0 {
                                 view!{
-                                     <SDangerButton
+                                     <DangerButton
                                         size=ButtonSize::Small
                                         on_click=move |_| {
                                             logging::log!("Canceling area edit...");
                                             handle_delete_area();                                                                                        
                                         }
-                                        >"🗑️"</SDangerButton>
+                                        >"🗑️"</DangerButton>
                                 }.into_any( )
                             } else {
                                 view!{<div class="grow" />}.into_any()
@@ -233,13 +233,13 @@ pub fn AreaForm(
                     }
                    
                     
-                    <SCancelButton 
+                    <CancelButton 
                     size=ButtonSize::Small
                     on_click=move |_| {
                         logging::log!("Canceling area edit...");
                         is_open.set(false);
                     }
-                    >"╳"</SCancelButton>
+                    >"╳"</CancelButton>
                     
                 </div>
         </div>

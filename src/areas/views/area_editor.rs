@@ -1,6 +1,6 @@
 use leptos::prelude::*;
 
-use crate::{areas::{model::ProjectArea, views::area_form::AreaForm}, ui::signal_button::{ButtonSize, SSecondaryButton}};
+use crate::{areas::{model::ProjectArea, views::area_form::AreaForm}, ui::button::{ButtonSize, SecondaryButton}};
 
 
 #[component]
@@ -36,14 +36,14 @@ pub fn AreaEditor(
                     } else {
                         view! {
                             <div class="w-full flex justify-end">
-                            <SSecondaryButton
+                            <SecondaryButton
                                 on_click=move |_| {
                                     open_area_editor();
                                 }
                                 size=ButtonSize::Small
                             >
                                 "➕"
-                            </SSecondaryButton>
+                            </SecondaryButton>
                             </div>
                         }.into_any()
                     }

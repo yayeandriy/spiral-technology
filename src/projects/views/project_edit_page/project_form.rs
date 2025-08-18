@@ -1,39 +1,16 @@
 use leptos::{logging, prelude::*};
 use leptos::task::spawn_local;
-use core::hash;
 use std::collections::HashMap;
 use std::sync::Arc;
 
 use crate::projects::projects_context::use_project;
 use crate::projects::model::Project;
-use crate::projects::views::project_edit_page::form_input_field::InputField;
-use crate::projects::views::project_edit_page::form_text_area::FormTextArea;
 use crate::projects::views::project_edit_page::project_areas_editor::ProjectAreasEditor;
-use crate::ui::s_selector::s_selector::SSelector;
-use crate::ui::signal_button::SDangerButton;
+use crate::shared::data_state_model::DataState;
+use crate::ui::button::DangerButton;
+use crate::ui::form::form_input_field::InputField;
+use crate::ui::form::form_text_area::FormTextArea;
 
-#[derive(Clone)]
-pub struct DataState<T> {
-    pub data: HashMap<String, (ReadSignal<String>, WriteSignal<String>)>,
-    pub is_modified: (ReadSignal<Vec<String>>, WriteSignal<Vec<String>>),
-    pub id: i32,
-    pub created_at: String,
-    pub init_data: Option<T>,
-}
-
-impl<T> Default for DataState<T> {
-    fn default() -> Self {
-        Self {
-            data: HashMap::new(),
-            is_modified: signal(vec![]),
-            id: 0,
-            created_at: String::new(),
-            init_data: None,
-        }
-    }
-
-
-}
 
 impl DataState<Project> {
     pub fn new() -> Self {
@@ -192,12 +169,12 @@ pub fn ProjectForm(
                         let handle_delete_project = handle_delete_project.clone();
                         view!{
                         <div class="w-1/2 flex flex-col space-y-4">
-                            <SDangerButton 
+                            <DangerButton 
                             on_click=move |_| {
                                 let handle_delete_project = handle_delete_project.clone();
                                 handle_delete_project(project_id);
                             }
-                            >Delete project</SDangerButton>
+                            >Delete project</DangerButton>
                             <InputField
                                 data_state=(*project_state_clone).clone()
                                 data_handle=(*handle_save_project_clone).clone()

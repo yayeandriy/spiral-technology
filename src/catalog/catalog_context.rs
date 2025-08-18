@@ -101,6 +101,7 @@ impl CatalogContext {
         }
     }
 
+
     
 
     pub fn get_project_areas_ids(&self, project_id: i64) -> Vec<i64> {

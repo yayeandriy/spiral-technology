@@ -1,6 +1,6 @@
 use leptos::prelude::*;
 
-use crate::{projects::views::project_edit_page::project_form::DataState, ui::signal_button::SPrimaryButton};
+use crate::{ shared::data_state_model::DataState, ui::button::PrimaryButton};
 
 
 
@@ -26,10 +26,10 @@ pub fn InputField<T>(
                                             let mut save_handler = data_handle.clone();
                                             if data_state.is_modified.0.get().contains(&field_name) {
                                                 view! { 
-                                                      <SPrimaryButton 
+                                                      <PrimaryButton 
                                                         on_click=move |_| save_handler()>
                                                         "Save"
-                                                    </SPrimaryButton>
+                                                    </PrimaryButton>
                                                     }.into_any()
                                             } else {
                                                 view! { <div />}.into_any()

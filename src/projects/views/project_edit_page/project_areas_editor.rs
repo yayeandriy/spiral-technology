@@ -1,6 +1,6 @@
 use leptos::{logging, prelude::*, reactive::spawn_local};
 
-use crate::{areas::{areas_context::use_areas, model::ProjectArea, views::area_editor::AreaEditor}, catalog::catalog_context::use_catalog,  ui::{s_selector::s_selector::SSelector, signal_button::{ButtonSize, SSecondaryButton}}};
+use crate::{areas::{areas_context::use_areas, model::ProjectArea, views::area_editor::AreaEditor}, catalog::catalog_context::use_catalog,  ui::{select::select::Select, button::{ButtonSize, SecondaryButton}}};
 
 #[component]
 pub fn ProjectAreasEditor(
@@ -134,7 +134,7 @@ fn CategorySection(
             >
                 <div class="flex gap-1">
                     {
-                        SSelector(
+                        Select(
                             move || category_areas.get().iter().map(|area| area.title.clone()).collect::<Vec<String>>(),
                             project_areas,
                             {
@@ -178,13 +178,13 @@ fn CategorySection(
                                     let area_for_edit = area.clone();
                                     view!{
                                         <div class="flex mb-[2px] items-center justify-between">                
-                                            <SSecondaryButton 
+                                            <SecondaryButton 
                                             size=ButtonSize::Small
                                             on_click=move |_| {
                                                 local_area_to_edit.set(Some(area_for_edit.clone()));
                                             }>
                                                 {"✏️"}
-                                            </SSecondaryButton>
+                                            </SecondaryButton>
                                         </div>
                                     }
                                 }

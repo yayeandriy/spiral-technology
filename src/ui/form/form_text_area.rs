@@ -1,8 +1,6 @@
 use leptos::prelude::*;
 
-use crate::{projects::views::project_edit_page::project_form::DataState, ui::signal_button::SPrimaryButton};
-
-
+use crate::{ shared::data_state_model::DataState, ui::button::PrimaryButton};
 
 #[component]
 pub fn FormTextArea<T>(
@@ -11,7 +9,6 @@ pub fn FormTextArea<T>(
     field_name: String
 ) -> impl IntoView {
     let value = data_state.data.get(&field_name).cloned();
-
     view! {
         {
             if let Some(value) = value {
@@ -30,10 +27,10 @@ pub fn FormTextArea<T>(
                                             if data_state.is_modified.0.get().contains(&field_name) {
                                                 view! { 
                                                     <div class="h-20" >
-                                                      <SPrimaryButton 
+                                                      <PrimaryButton 
                                                         on_click=move |_| save_handler()>
                                                         "Save"
-                                                        </SPrimaryButton>
+                                                        </PrimaryButton>
                                                     </div>
                                                     }.into_any()
                                             } else {

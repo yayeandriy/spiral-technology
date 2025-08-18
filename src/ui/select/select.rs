@@ -1,7 +1,7 @@
 use leptos::{logging, prelude::*};
 
 
-pub fn SSelector<T: Send + Sync + Clone + PartialEq + ToString + 'static, F: Fn(T) + Clone + 'static>(
+pub fn Select<T: Send + Sync + Clone + PartialEq + ToString + 'static, F: Fn(T) + Clone + 'static>(
     options: impl Fn() -> Vec<T>,
     selected: Signal<Vec<T>>,    
     mut on_click: F

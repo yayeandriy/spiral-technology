@@ -3,7 +3,7 @@ use leptos::prelude::*;
 use crate::projects::projects_context::use_project;
 use crate::projects::model::Project;
 use crate::projects::views::project_card::ProjectsCard;
-use crate::ui::signal_button::SPrimaryButton;
+use crate::ui::button::PrimaryButton;
 use crate::ui::*;
 
 #[component]
@@ -24,9 +24,9 @@ pub fn ProjectsList(
     view! {
         <div class="flex flex-col p-4 gap-4 w-[400px]" >
             <div class="flex justify-between items-center">
-                <SPrimaryButton on_click=handle_create >
+                <PrimaryButton on_click=handle_create >
                     "Create new project"
-                </SPrimaryButton>
+                </PrimaryButton>
             </div>
             
             <div class="">
