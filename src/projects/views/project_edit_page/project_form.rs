@@ -3,6 +3,7 @@ use leptos::task::spawn_local;
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use crate::content::views::content_editor::ContentEditor;
 use crate::projects::projects_context::use_project;
 use crate::projects::model::Project;
 use crate::projects::views::project_edit_page::project_areas_editor::ProjectAreasEditor;
@@ -185,6 +186,7 @@ pub fn ProjectForm(
                                 data_handle=(*handle_save_project_clone).clone()
                                 field_name="desc".to_string()
                             />                           
+                            <ContentEditor />
                         </div>
                         <div class="grow transition-all" >
                     

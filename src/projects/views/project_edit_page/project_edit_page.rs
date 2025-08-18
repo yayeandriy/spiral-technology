@@ -1,14 +1,13 @@
 use leptos::prelude::*;
 use leptos_router::hooks::{use_params_map, use_navigate};
 
-use crate::{ projects::{
+use crate::{ content::views::content_editor::ContentEditor, projects::{
     model::Project,
     projects_context::use_project, views::project_edit_page::project_form::ProjectForm,
 }};
 
 #[component]
 pub fn ProjectEditPage() -> impl IntoView {
-    let navigate = use_navigate();
     let params = use_params_map();
     let project_context = use_project();
 
@@ -53,16 +52,6 @@ pub fn ProjectEditPage() -> impl IntoView {
 
                 // Show form for both new projects and existing projects
                 if is_creating_new || existing_project.is_some() {
-                    let navigate_clone = navigate.clone();
-                    let handle_save = move |_project: Project| {
-                        navigate_clone("/editor", Default::default());
-                    };
-                    
-                    let navigate_clone2 = navigate.clone();
-                    let handle_cancel = move |_: ()| {
-                        navigate_clone2("/editor", Default::default());
-                    };
-
 
                     view! {
                             // <h1 class="text-2xl font-bold mb-6 text-gray-800">{page_title}</h1>
@@ -72,12 +61,13 @@ pub fn ProjectEditPage() -> impl IntoView {
                                         <ProjectForm
                                             project=proj
                                         />
-                                    }
+                                        
+                                    }.into_any()
                                 } else {
                                     view! {
                                         <ProjectForm
                                         />
-                                    }
+                                    }.into_any()
                                 }
                             }
                     }.into_any()
