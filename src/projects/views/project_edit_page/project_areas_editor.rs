@@ -1,146 +1,208 @@
-use std::sync::Arc;
-
 use leptos::{logging, prelude::*, reactive::spawn_local};
 
-use crate::{areas::{areas_context::{self, use_areas}, model::ProjectCategoryName}, catalog::{self, catalog_context::{self, use_catalog}}, projects::model::Project, ui::s_selector::s_selector::SSelector};
-
+use crate::{areas::{areas_context::use_areas, model::ProjectArea}, catalog::catalog_context::use_catalog, projects::views::project_edit_page::area_editor::AreaEditor, ui::{s_selector::s_selector::SSelector, signal_button::{ButtonSize, SSecondaryButton}}};
 
 #[component]
 pub fn ProjectAreasEditor(
     project_id: i32,
 ) -> impl IntoView {
-    let expanded_cat = signal(None::<ProjectCategoryName>);
-
-
+    let expanded_cat = RwSignal::new(None::<String>);
 
     let catalog_context = use_catalog();
-    let catalog_context_clone_2 = catalog_context.clone();
     let areas_context = use_areas();
-    let area_context_clone = areas_context.clone();
-    let area_context_clone_2 = areas_context.clone();
+    
+    let categories = Signal::derive({
+        let areas_context = areas_context.clone();
+        move || areas_context.categories.0.get()
+    });
+    let all_areas = Signal::derive({
+        let areas_context = areas_context.clone();
+        move || areas_context.areas.0.get()
+    });
 
-    let all_areas = move || area_context_clone.areas.0.get();
-    let all_areas_clone = all_areas.clone();
-    let all_areas_clone_2 = all_areas.clone();
-    let categories = move || area_context_clone_2.categories.0.get();
-    let categories_clone = categories.clone();
-    let areas_by_category = move || {
-        let areas = all_areas();
-        let categories = categories();
-        let mut map = std::collections::HashMap::new();
-        for category in categories {
-            let category_areas: Vec<_> = areas.iter().filter(|area| area.category == category).cloned().collect();
-            map.insert(category, category_areas);
+    let areas_by_category = Signal::derive({
+        let all_areas = all_areas.clone();
+        let categories = categories.clone();
+        move || {
+            let areas = all_areas.get();
+            let categories = categories.get();
+            let mut map = std::collections::HashMap::new();
+            for category in categories {
+                let category_areas: Vec<_> = areas.iter().filter(|area| area.category == category).cloned().collect();
+                map.insert(category, category_areas);
+            }
+            map
         }
-        map
-    };
-    
-    let project_areas_ids = move || catalog_context.get_project_areas_ids(project_id as i64);
-    
-    let project_areas = Signal::derive(move || {
-        let ids = project_areas_ids();
-        all_areas_clone().iter().filter(|area| ids.contains(&area.id)).map(|area| area.title.clone()).collect::<Vec<_>>()
     });
     
-    let area_id_by_title = move |title: &str| {
-        all_areas_clone_2().iter().find(|area| area.title == title).map(|area| area.id)
-    };
-
-    let toggle_area = move |area_title: String| {
-        let mut current_areas = project_areas.get();
-        if current_areas.contains(&area_title) {
-            if let Some(area_id) = area_id_by_title(&area_title) {
-                spawn_local(async move {
-                    if let Err(e) = catalog_context_clone_2.remove_project_relations(project_id as i64, area_id).await {
-                        logging::log!("Error removing area relation: {}", e);
-                    }
-                });
-            }
-           
-        } else {
-           if let Some(area_id) = area_id_by_title(&area_title) {
-               spawn_local(async move {
-                   if let Err(e) = catalog_context_clone_2.add_project_area_relation(project_id as i64, area_id).await {
-                       logging::log!("Error adding area relation: {}", e);
-                   }
-               });
-           }
+    let project_areas_ids = Signal::derive({
+        let catalog_context = catalog_context.clone();
+        move || catalog_context.get_project_areas_ids(project_id as i64)
+    });
+    
+    let project_areas = Signal::derive({
+        let all_areas = all_areas.clone();
+        move || {
+            let ids = project_areas_ids.get();
+            let areas = all_areas.get();
+            areas.iter().filter(|area| ids.contains(&area.id)).map(|area| area.title.clone()).collect::<Vec<_>>()
         }
-    };
-    let areas_by_category_clone = areas_by_category.clone();
-    let category_areas_selector = move |category: ProjectCategoryName| {
-        let areas = areas_by_category().get(&category).cloned().unwrap_or_default();
-        let toggle_area_clone = toggle_area.clone();
-        SSelector(
-            move || areas.iter().map(|area| area.title.clone()).collect::<Vec<String>>(),
-            project_areas,
-            move |selected: String| {
-                logging::log!("Selected area title: {}", selected);
-                toggle_area_clone.clone()(selected);
-            },
-        )
-    };
-
-   let selected_areas_by_cat = move |cat: ProjectCategoryName| {
-       let areas = areas_by_category_clone().get(&cat).cloned().unwrap_or_default();
-       project_areas.get().iter().filter(|area| areas.iter().any(|a| &a.title == *area))
-        .map(|area| view!{ <div class="uppercase tracking-wider text-[10px] max-w-24 truncate px-2 text-white bg-black rounded-[6px]" >{area.clone()}</div> }).collect_view()
-   };
-
-
+    });
+    
+    let area_to_edit = RwSignal::new(None::<ProjectArea>);
 
     view! {
         <div>
-        {
-            move || categories_clone().iter().map(|category| {
-                let category_clone = category.clone();
-                let category_clone_2 = category.clone();
-                let category_clone_3 = category.clone();
-                let category_areas_selector = category_areas_selector.clone();
-                let expanded_cat = expanded_cat.clone();
-                let expanded_cat_clone = expanded_cat.clone();
-                let is_cat_expanded = move || expanded_cat.0.get() == Some(category_clone_3.clone());
+        <For
+            each=move || categories.get()
+            key=|category| category.clone()
+            children=move |category| {
                 view! {
-                    <div class="border-b border-x w-full first:border-t first:rounded-t-[6px] p-2  hover:bg-gray-100 last:rounded-b-[6px]">
-                        <div class="text-sm mb-1 cursor-pointer transition-all flex justify-between"
-                        on:click=move |_| {
-                            if expanded_cat_clone.0.get() == Some(category_clone_2.clone()) {
-                                expanded_cat_clone.1.set(None);
-                            } else {
-                                expanded_cat_clone.1.set(Some(category_clone_2.clone()));
-                            }
-                        }
-                        >
-                            <div>
-                                {category_clone.clone()}
-                            </div>
-                            <div class="flex gap-1 justify-end" class:hidden=is_cat_expanded() >
-                                {selected_areas_by_cat(category_clone_2.clone()).into_any()}
-                            </div>
-                        </div>
-                        {
-                            {
-                                let category_for_check = category_clone.clone();
-                                move || {
-                                    if expanded_cat.0.get() == Some(category_for_check.clone()) {
-                                        view! {
-                                            {category_areas_selector(category_for_check.clone()).into_any()}
-                                        }.into_any()
-                                    } else {
-                                        view! {
-                                            <div/>
-                                        }.into_any()
-                                    }
-                                }
-                            }
-                        }
-                        
-                    </div>
+                    <CategorySection 
+                        category=category
+                        project_id=project_id
+                        expanded_cat=expanded_cat
+                        areas_by_category=areas_by_category
+                        project_areas=project_areas
+                        area_to_edit=area_to_edit
+                        catalog_context=catalog_context.clone()
+                        all_areas=all_areas
+                    />
                 }
-            }).collect_view()
-        }
+            }
+        />
         </div>
-                           
     }
 }
 
+#[component]
+fn CategorySection(
+    category: String,
+    project_id: i32,
+    expanded_cat: RwSignal<Option<String>>,
+    areas_by_category: Signal<std::collections::HashMap<String, Vec<ProjectArea>>>,
+    project_areas: Signal<Vec<String>>,
+    area_to_edit: RwSignal<Option<ProjectArea>>,
+    catalog_context: std::sync::Arc<crate::catalog::catalog_context::CatalogContext>,
+    all_areas: Signal<Vec<ProjectArea>>,
+) -> impl IntoView {
+    let is_expanded = Signal::derive({
+        let category = category.clone();
+        move || expanded_cat.get() == Some(category.clone())
+    });
+    
+    let category_areas = Signal::derive({
+        let category = category.clone();
+        move || areas_by_category.get().get(&category).cloned().unwrap_or_default()
+    });
+
+    view! {
+        <div class="border-b border-x w-full first:border-t first:rounded-t-[6px] p-2  hover:bg-gray-100 last:rounded-b-[6px]">
+            <div class="text-sm mb-1 cursor-pointer transition-all flex justify-between"
+            on:click={
+                let category = category.clone();
+                move |_| {
+                    let current_expanded = expanded_cat.get();
+                    if current_expanded == Some(category.clone()) {
+                        expanded_cat.set(None);
+                    } else {
+                        expanded_cat.set(Some(category.clone()));
+                    }
+                }
+            }
+            >
+                <div>
+                    {category.clone()}
+                </div>
+                <div class="flex gap-1 justify-end" class:hidden=move || is_expanded.get() >
+                    {
+                        move || {
+                            let areas = category_areas.get();
+                            let project_areas_current = project_areas.get();
+                            areas.iter().filter(|area| project_areas_current.iter().any(|pa| &area.title == pa))
+                             .map(|area| view!{ <div class="uppercase tracking-wider text-[10px] max-w-24 truncate px-2 text-white bg-black rounded-[6px]" >{area.title.clone()}</div> }).collect_view()
+                        }
+                    }
+                </div>
+            </div>
+            <Show
+                when=move || is_expanded.get()
+                fallback=|| view! { <div/> }
+            >
+                <div class="flex gap-1">
+                    {
+                        SSelector(
+                            move || category_areas.get().iter().map(|area| area.title.clone()).collect::<Vec<String>>(),
+                            project_areas,
+                            {
+                                let catalog_context = catalog_context.clone();
+                                let all_areas = all_areas.clone();
+                                move |selected: String| {
+                                    logging::log!("Selected area title: {}", selected);
+                                    let current_areas = project_areas.get();
+                                    if current_areas.contains(&selected) {
+                                        if let Some(area) = all_areas.get().iter().find(|area| area.title == selected) {
+                                            let catalog_context_for_remove = catalog_context.clone();
+                                            let area_id = area.id;
+                                            spawn_local(async move {
+                                                if let Err(e) = catalog_context_for_remove.remove_project_relations(project_id as i64, area_id).await {
+                                                    logging::log!("Error removing area relation: {}", e);
+                                                }
+                                            });
+                                        }
+                                    } else {
+                                       if let Some(area) = all_areas.get().iter().find(|area| area.title == selected) {
+                                           let catalog_context_for_add = catalog_context.clone();
+                                           let area_id = area.id;
+                                           spawn_local(async move {
+                                               if let Err(e) = catalog_context_for_add.add_project_area_relation(project_id as i64, area_id).await {
+                                                   logging::log!("Error adding area relation: {}", e);
+                                               }
+                                           });
+                                       }
+                                    }
+                                }
+                            },
+                        )
+                    }
+                    {
+                        view!{
+                            <div class="flex-col" >
+                            <For
+                                each=move || category_areas.get()
+                                key=|area| area.id
+                                children=move |area| {
+                                    let area_for_edit = area.clone();
+                                    view!{
+                                        <div class="flex items-center justify-between">                
+                                            <SSecondaryButton 
+                                            size=ButtonSize::Small
+                                            on_click=move |_| {
+                                                area_to_edit.set(Some(area_for_edit.clone()));
+                                            }>
+                                                {"✏️"}
+                                            </SSecondaryButton>
+                                        </div>
+                                    }
+                                }
+                            />      
+                            </div>
+                        }
+                    }
+                </div>
+                {
+                    let category_for_editor = category.clone();
+                    move || if let Some(area) = area_to_edit.get() {
+                        view! {
+                            <div class="mt-2">
+                                <AreaEditor area=area category=category_for_editor.clone() />
+                            </div>
+                        }.into_any()
+                    } else {
+                        view! { <AreaEditor category={category_for_editor.clone()} /> }.into_any()
+                    }
+                }
+            </Show>
+        </div>
+    }
+}

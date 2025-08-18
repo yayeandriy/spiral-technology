@@ -1,4 +1,4 @@
-use crate::areas::model::{ProjectArea, ProjectCategoryName};
+use crate::areas::model::{ProjectArea};
 use crate::supabase::{supabase_get, supabase_post, supabase_patch, supabase_delete};
 use leptos::{
     logging,
@@ -24,7 +24,7 @@ use leptos::prelude::Get;
 #[derive(Clone)]
 pub struct AreaContext {
     pub areas: (ReadSignal<Vec<ProjectArea>>, WriteSignal<Vec<ProjectArea>>),
-    pub categories: (ReadSignal<Vec<ProjectCategoryName>>, WriteSignal<Vec<ProjectCategoryName>>),
+    pub categories: (ReadSignal<Vec<String>>, WriteSignal<Vec<String>>),
     pub is_loading: (ReadSignal<bool>, WriteSignal<bool>),
     pub error: (ReadSignal<Option<String>>, WriteSignal<Option<String>>),
     url_path: String,
@@ -34,7 +34,7 @@ impl AreaContext {
     pub fn new() -> Self {
         Self {
             areas: signal::<Vec<ProjectArea>>(vec![]),
-            categories: signal::<Vec<ProjectCategoryName>>(vec![]),
+            categories: signal::<Vec<String>>(vec![]),
             is_loading: signal(false),
             error: signal(None),
             url_path: "/rest/v1/areas?select=*".to_string(),
@@ -61,7 +61,7 @@ impl AreaContext {
     }
 
     fn parse_categories(&self, items: Vec<ProjectArea>) {
-        let mut categories: Vec<ProjectCategoryName> = items
+        let mut categories: Vec<String> = items
             .into_iter()
             .map(|item| item.category)
             .collect();
@@ -80,6 +80,36 @@ impl AreaContext {
             "category": category,
             "desc": desc
         });
+        
+        match supabase_post::<ProjectArea, serde_json::Value>("/rest/v1/areas", &new_area).await {
+            Ok(area) => {
+                self.areas.1.update(|areas| {
+                    areas.push(area);
+                });
+                // Refresh categories
+                let current_areas = self.areas.0.get();
+                self.parse_categories(current_areas);
+            }
+            Err(err) => {
+                logging::log!("Error adding area: {}", err);
+                self.error.1.set(Some(err));
+            }
+        }
+        
+        self.is_loading.1.try_update(|v| *v = false);
+    }
+
+    pub async fn create_area(&self, area: ProjectArea) {
+        self.is_loading.1.try_update(|v| *v = true);
+        self.error.1.update(|e| *e = None);
+        
+        let new_area = serde_json::json!({
+            "title": area.title,
+            "category": area.category,
+            "desc": area.desc
+        });
+
+        logging::log!("Creating area with data: {:?}", new_area);   
         
         match supabase_post::<ProjectArea, serde_json::Value>("/rest/v1/areas", &new_area).await {
             Ok(area) => {
@@ -151,7 +181,7 @@ impl AreaContext {
         self.is_loading.1.try_update(|v| *v = false);
     }
 
-    pub fn get_area_by_category(&self, category: &ProjectCategoryName) -> Vec<ProjectArea> {
+    pub fn get_area_by_category(&self, category: &String) -> Vec<ProjectArea> {
         self.areas.0.get().iter()
             .filter(|area| &area.category == category)
             .cloned()
