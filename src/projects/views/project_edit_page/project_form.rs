@@ -19,6 +19,20 @@ pub struct DataState<T> {
     pub init_data: Option<T>,
 }
 
+impl<T> Default for DataState<T> {
+    fn default() -> Self {
+        Self {
+            data: HashMap::new(),
+            is_modified: signal(vec![]),
+            id: 0,
+            created_at: String::new(),
+            init_data: None,
+        }
+    }
+
+
+}
+
 impl DataState<Project> {
     pub fn new(input_data: Option<Project>) -> Self {
         Self {

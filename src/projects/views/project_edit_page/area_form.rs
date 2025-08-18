@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use leptos::{logging, prelude::*, reactive::spawn_local};
 
-use crate::{areas::{areas_context::use_areas, model::{ProjectArea, ProjectAreaDto,}}, catalog::catalog_context::use_catalog, projects::{model::Project, views::project_edit_page::{form_input_field::InputField, form_text_area::FormTextArea, project_form::DataState}}};
+use crate::{areas::{areas_context::use_areas, model::{ProjectArea, ProjectAreaDto,}}, catalog::catalog_context::use_catalog, projects::{model::Project, views::project_edit_page::{form_input_field::InputField, form_text_area::FormTextArea, project_form::DataState}}, ui::signal_button::{ButtonSize, SCancelButton, SDangerButton}};
 
 
 
@@ -108,6 +108,7 @@ pub fn AreaForm(
     #[prop(optional)]
     area: Option<ProjectArea>,
     category: String,
+    is_open: WriteSignal<bool>,
 ) -> impl IntoView {
     let catalog_context = use_catalog();
     let areas_context = use_areas();
@@ -157,6 +158,21 @@ pub fn AreaForm(
             });
         }
     };
+    let handle_delete_area = {
+        let areas_context = areas_context_clone.clone();
+        let area_state_clone = area_state_clone_3.clone();
+        move || {
+            logging::log!("Saving project...");
+            let areas_context = areas_context.clone();
+            let area_state = area_state_clone.clone();
+            spawn_local(async move {
+                    let updated_area = <DataState<ProjectArea> as Clone>::clone(&area_state).into_data();
+                    
+                    areas_context.delete_area(updated_area.id).await;
+            });
+            is_open.set(false);
+        }
+    };
 
     let handle_create_area_clone = Arc::new(handle_create_area.clone());
     let handle_update_area_clone = Arc::new(handle_update_area.clone());
@@ -194,6 +210,37 @@ pub fn AreaForm(
                 }
             }
                                  
+                </div>
+                <div class="flex justify-between mt-1">
+                    {
+                        if let Some(area) = area_clone {
+                            if area.id > 0 {
+                                view!{
+                                     <SDangerButton
+                                        size=ButtonSize::Small
+                                        on_click=move |_| {
+                                            logging::log!("Canceling area edit...");
+                                            handle_delete_area();                                                                                        
+                                        }
+                                        >"🗑️"</SDangerButton>
+                                }.into_any( )
+                            } else {
+                                view!{<div class="grow" />}.into_any()
+                            }
+                        }else{
+                            view!{<div class="grow" />}.into_any()
+                        }
+                    }
+                   
+                    
+                    <SCancelButton 
+                    size=ButtonSize::Small
+                    on_click=move |_| {
+                        logging::log!("Canceling area edit...");
+                        is_open.set(false);
+                    }
+                    >"╳"</SCancelButton>
+                    
                 </div>
         </div>
                            
