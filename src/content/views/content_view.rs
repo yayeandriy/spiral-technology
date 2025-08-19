@@ -11,7 +11,7 @@ pub fn ContentView() -> impl IntoView {
     let content = move || content_context.project_content.0.get();
     
     view! {
-        <div class="w-full flex flex-col space-y-2 p-4">            
+        <div class="w-full bg-white flex flex-col space-y-2 p-4 pt-4">            
             {
                 move || if let Some(content_data) = content() {
                     match &content_data.text {
@@ -30,9 +30,7 @@ pub fn ContentView() -> impl IntoView {
                     }
                 } else {
                     view! {
-                        <div class="text-gray-500 italic">
-                            "Loading content..."
-                        </div>
+                        <div/>
                     }.into_any()
                 }
             }           

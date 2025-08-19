@@ -12,7 +12,7 @@ pub fn CloseButton(
     #[prop(optional)]
     on_click: Option<Box<dyn Fn() + 'static>>,
 ) -> impl IntoView {
-    let base_classes = "w-12 h-12 absolute top-2 right-2 text-lg rounded-full bg-gray-100 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors duration-200";
+    let base_classes = "w-12 h-12 text-lg rounded-full bg-gray-100 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition-colors duration-200";
     let combined_classes = if class.is_empty() {
         base_classes.to_string()
     } else {
