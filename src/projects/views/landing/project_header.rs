@@ -1,20 +1,32 @@
 use leptos::prelude::*;
 
-use crate::{content::{self, content_context::use_project_content}, projects::{model::Project, projects_context::use_project}};
+use crate::projects::model::Project;
 
 
 
 
 #[component]
 pub fn ProjectHeader(
-    project: Project
+    project: ReadSignal<Option<Project>>
 ) -> impl IntoView {
-    let project_clone = project.clone();
     view! {
         <div class="w-full sticky bg-white top-[200px] flex flex-col border-t pt-4 px-4">
-            <span class="pr-2">{project.title}</span>           
-            <div class="text-gray-400 h-32px" >{project_clone.desc}</div>
+            {
+                move || if let Some(proj) = project.get() {
+                    view! {
+                        <>
+                            <span class="pr-2">{proj.title}</span>           
+                            <div class="text-gray-400 h-32px">{proj.desc}</div>
+                        </>
+                    }.into_any()
+                } else {
+                    view! {
+                        <div class="text-gray-400 italic">
+                            "No project selected"
+                        </div>
+                    }.into_any()
+                }
+            }
         </div>
-    
     }
 }
