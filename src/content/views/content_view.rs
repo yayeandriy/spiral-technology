@@ -1,23 +1,21 @@
 use leptos::prelude::*;
 
-use crate::{content::model::ProjectContent, projects::views::landing::markdown_renderer::MarkdownRenderer};
+use crate::content::{model::ProjectContent, views::markdown_renderer::MarkdownRenderer};
 
 
 
 
 #[component]
-pub fn ProjectContentView(
+pub fn ContentView(
     content: ProjectContent
 ) -> impl IntoView {
     
     view! {
-        <div class="project-content">
-            <div class="markdown-content prose prose-lg max-w-none">
+        <div class="w-full flex flex-col space-y-2 p-4">            
                 {
                     match &content.text {
                         Some(text) => {
                             view! {
-                                // <div inner_html=text.clone()></div>
                                 <MarkdownRenderer text=text.clone() />
                             }.into_any()
                         },
@@ -29,8 +27,7 @@ pub fn ProjectContentView(
                             }.into_any()
                         }
                     }
-                }
-            </div>
+                }            
         </div>
     }
 }

@@ -7,7 +7,7 @@ body{
     display: flex;
     width: 100%;
     height: 100%;
-    background-color: #4B5563;
+    background-color: #ffffff;
     color: rgb(0, 0, 0);
     font-size: 13px;
     line-height: 15px;
@@ -37,23 +37,29 @@ tr{
   
   /* Track */
   ::-webkit-scrollbar-track {
-    background: #223;
+    background: rgb(255, 255, 255);
   }
   
   /* Handle */
   ::-webkit-scrollbar-thumb {
-    background: rgb(64, 64, 78);
+    background: rgb(213, 213, 214);
     border-radius: 3px;
   }
   
   
   /* Handle on hover */
   ::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    background: #bdbcbc;
   }
 
   th {
     position: sticky;
     top: 0; /* Don't forget this, required for the stickiness */
-    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 2px 2px -1px rgba(255, 255, 255, 0.4);
+  }
+
+  .prose img{
+    max-width: 100%;
+    height: auto;
+    padding: 20px 0;
   }

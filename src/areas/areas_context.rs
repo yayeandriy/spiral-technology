@@ -181,9 +181,15 @@ impl AreaContext {
         self.is_loading.1.try_update(|v| *v = false);
     }
 
-    pub fn get_area_by_category(&self, category: &String) -> Vec<ProjectArea> {
+    pub fn get_areas_by_category(&self, category: &String) -> Vec<ProjectArea> {
         self.areas.0.get().iter()
             .filter(|area| &area.category == category)
+            .cloned()
+            .collect()
+    }
+    pub fn get_areas_by_ids(&self, ids: &[i64]) -> Vec<ProjectArea> {
+        self.areas.0.get().iter()
+            .filter(|area| ids.contains(&area.id))
             .cloned()
             .collect()
     }

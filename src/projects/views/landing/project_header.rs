@@ -9,22 +9,11 @@ use crate::{content::{self, content_context::use_project_content}, projects::{mo
 pub fn ProjectHeader(
     project: Project
 ) -> impl IntoView {
-    
+    let project_clone = project.clone();
     view! {
-        <div class="cursor-pointer h-[72px] flex flex-col transition-colors duration-200 hover:text-black text-gray-800">
-            <div
-                class="h-[32px]" 
-                style="background: linear-gradient(
-                    to bottom,
-                    transparent 49%,   
-                    #dfdfdf 49%,         
-                    #dfdfdf 51%,         
-                    transparent 51%    
-                )"
-            >
-                <span class="bg-white pr-2">{project.title}</span>
-            </div>
-            <div class="text-gray-400 h-32px" >{project.desc}</div>
+        <div class="w-full flex flex-col border-t pt-4 px-4">
+            <span class="bg-white pr-2">{project.title}</span>           
+            <div class="text-gray-400 h-32px" >{project_clone.desc}</div>
         </div>
     
     }

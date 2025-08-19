@@ -25,6 +25,6 @@ pub fn MarkdownRenderer(text: String) -> impl IntoView {
     view! {
         // `dangerously_set_inner_html` takes a `String` and inserts it as raw
         // inner‑HTML.  It is *dangerous* only if the markup is not sanitized.
-        <div inner_html={html()} />
+        <div class="prose w-full" inner_html={html()} />
     }
 }

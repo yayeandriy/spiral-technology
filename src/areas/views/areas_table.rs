@@ -18,7 +18,7 @@ pub fn AreasTable() -> impl IntoView {
     let current_category = signal::<String>(default_category);
 
     let areas_context_clone = areas_context.clone();
-    let areas = move || areas_context.get_area_by_category(&current_category.0.get());
+    let areas = move || areas_context.get_areas_by_category(&current_category.0.get());
     let areas_clone = areas.clone();
     let categories = move || areas_context_clone.categories.0.get();
 
