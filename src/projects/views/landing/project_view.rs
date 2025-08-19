@@ -20,7 +20,7 @@ pub fn ProjectView() -> impl IntoView {
     
     view! {
         <div class="h-screen w-full overflow-y-hidden p-8 transition-all">
-        <div class="relative flex w-full flex-col gap-2 border h-full overflow-y-auto rounded-lg bg-white shadow-xl">
+        <div class="relative flex w-full flex-col border h-full overflow-y-auto rounded-lg bg-white shadow-xl">
 
            <ProjectAreas project=project_signal />
             {

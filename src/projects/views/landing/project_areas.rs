@@ -19,7 +19,7 @@ pub fn ProjectAreas(
    let categories = move || areas_context_clone.categories.0.get();
 
     view! {
-        <div class="w-full flex justify-between items-start h-[200px] pr-20 pl-4 pt-4 transition-all">
+        <div class="w-full sticky top-0 bg-white flex justify-between items-start h-[200px] pr-20 pl-4 pt-4 transition-all">
             {
                 move || categories().into_iter().map(|category| {
                     let areas_in_category = areas().iter()
@@ -28,7 +28,7 @@ pub fn ProjectAreas(
                         .collect::<Vec<_>>();
                     if !areas_in_category.is_empty() {
                         view! {
-                            <div class="flex flex-col gap-1">
+                            <div class="flex flex-col gap-1 bg-white h-full">
                                 <div class="text-gray-400">{category}</div>
                                 <div class="flex flex-col gap-1">
                                     {

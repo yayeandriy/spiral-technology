@@ -11,8 +11,8 @@ pub fn ProjectHeader(
 ) -> impl IntoView {
     let project_clone = project.clone();
     view! {
-        <div class="w-full flex flex-col border-t pt-4 px-4">
-            <span class="bg-white pr-2">{project.title}</span>           
+        <div class="w-full sticky bg-white top-[200px] flex flex-col border-t pt-4 px-4">
+            <span class="pr-2">{project.title}</span>           
             <div class="text-gray-400 h-32px" >{project_clone.desc}</div>
         </div>
     
