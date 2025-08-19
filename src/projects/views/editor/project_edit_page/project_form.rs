@@ -6,7 +6,7 @@ use std::sync::Arc;
 use crate::content::views::content_page::ContentPage;
 use crate::projects::projects_context::use_project;
 use crate::projects::model::Project;
-use crate::projects::views::project_edit_page::project_areas_editor::ProjectAreasEditor;
+use crate::projects::views::editor::project_edit_page::project_areas_editor::ProjectAreasEditor;
 use crate::shared::data_state_model::DataState;
 use crate::ui::button::DangerButton;
 use crate::ui::form::form_input_field::InputField;

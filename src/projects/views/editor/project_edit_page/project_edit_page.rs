@@ -1,10 +1,9 @@
 use leptos::prelude::*;
-use leptos_router::hooks::{use_params_map, use_navigate};
+use leptos_router::hooks::use_params_map;
 
-use crate::{ content::views::content_editor::ContentEditor, projects::{
-    model::Project,
-    projects_context::use_project, views::project_edit_page::project_form::ProjectForm,
-}};
+use crate::projects::{
+    projects_context::use_project, views::editor::project_edit_page::project_form::ProjectForm,
+};
 
 #[component]
 pub fn ProjectEditPage() -> impl IntoView {

@@ -2,10 +2,10 @@
 use leptos::prelude::*;
 use leptos_meta::*;
 use leptos_router::{
-    components::{ParentRoute, Route, Router, Routes}, hooks::{use_params, use_params_map}, path, StaticSegment
+    components::{ParentRoute, Route, Router, Routes}, path, StaticSegment
 };
 
-use crate::{areas::{areas_context::{AreaContextProvider, AreaRoute}, views::areas_table::AreasTable}, catalog::catalog_context::{CatalogContextProvider, CatalogRoute}, content::content_context::{ProjectContentContextProvider, ProjectContentRoute}, pages::{about_page::AboutPage, editor_page::EditorPage, home_page::HomePage}, projects::{projects_context::{ProjectProvider, ProjectRoute, ProjectURLParams}, views::{self, project_edit_page::project_edit_page::ProjectEditPage}}};
+use crate::{areas::{areas_context::{AreaContextProvider, AreaRoute}, views::areas_table::AreasTable}, catalog::catalog_context::{CatalogContextProvider, CatalogRoute}, content::content_context::{ProjectContentContextProvider, ProjectContentRoute}, pages::{about_page::AboutPage, editor_page::EditorPage, home_page::HomePage}, projects::{projects_context::{ProjectProvider, ProjectRoute}, views::{editor::project_edit_page::project_edit_page::ProjectEditPage, landing::project_view::ProjectView}}};
 
 
 
@@ -47,6 +47,17 @@ pub fn App() -> impl IntoView {
                     
 
                         <Route path=path!("") view=AreasTable/>
+                         <Route path=path!(":project_id")   
+                            view=||{ 
+                                
+                                view! { 
+                            <ProjectRoute>
+                            <ProjectContentRoute>
+                                    <ProjectView />
+                            </ProjectContentRoute>
+                            </ProjectRoute>     
+                                
+                            }}/>
                         <Route path=path!("about") view=AboutPage/>
                     </ParentRoute>
                  <ParentRoute 

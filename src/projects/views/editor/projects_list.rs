@@ -2,10 +2,8 @@ use leptos::prelude::*;
 use leptos_router::hooks::use_navigate;
 
 use crate::projects::projects_context::use_project;
-use crate::projects::model::Project;
-use crate::projects::views::project_card::ProjectsCard;
+use crate::projects::views::editor::project_card::ProjectsCard;
 use crate::ui::button::PrimaryButton;
-use crate::ui::*;
 
 #[component]
 pub fn ProjectsList(

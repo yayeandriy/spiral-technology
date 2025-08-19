@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use leptos_router::components::Outlet;
 
-use crate::projects::views::projects_list::ProjectsList;
+use crate::projects::views::editor::projects_list::ProjectsList;
 
 
 

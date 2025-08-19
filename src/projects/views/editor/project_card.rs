@@ -1,6 +1,7 @@
 use leptos::prelude::*;
 
-use crate::{projects::model::Project, ui::form};
+use crate::projects::model::Project;
+
 #[component]
 pub fn ProjectsCard(
     project: Project,

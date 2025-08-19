@@ -15,7 +15,9 @@ pub fn ProjectsView() -> impl IntoView {
             {
                 move || projects().into_iter().map(|project| {
                     view! {
-                        <div class="cursor-pointer h-[72px] flex flex-col transition-colors duration-200 hover:text-black text-gray-800">
+                        <a 
+                        href={format!("/home/{}", project.id)}
+                        class="cursor-pointer h-[72px] flex flex-col transition-colors duration-200 hover:text-black text-gray-800">
                             <div
                                 class="h-[32px]" 
                         style="background: linear-gradient(
@@ -29,7 +31,7 @@ pub fn ProjectsView() -> impl IntoView {
                                 <span class="bg-white pr-2">{project.title}</span>
                             </div>
                             <div class="text-gray-400 h-32px" >{project.desc}</div>
-                        </div>
+                        </a>
                     }
                 }).collect::<Vec<_>>()
             }
