@@ -170,14 +170,14 @@ fn CategorySection(
                     }
                     {
                         view!{
-                            <div class="flex-col pt-2" >
+                            <div class="flex-col pt-[11px]" >
                             <For
                                 each=move || category_areas.get()
                                 key=|area| area.id
                                 children=move |area| {
                                     let area_for_edit = area.clone();
                                     view!{
-                                        <div class="flex mb-[2px] items-center justify-between">                
+                                        <div class="flex mb-[7px] items-center justify-between">                
                                             <SecondaryButton 
                                             size=ButtonSize::Small
                                             on_click=move |_| {

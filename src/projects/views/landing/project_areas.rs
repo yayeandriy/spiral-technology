@@ -30,7 +30,7 @@ pub fn ProjectAreas(
         if visible {
             format!("{} min-h-[200px] justify-between ", base_class)
         } else {
-            format!("{} text-[13px] min-h-[100px] justify-start", base_class)
+            format!("{} text-[13px] min-h-[100px] justify-start overflow-x-auto", base_class)
         }
         
     };
