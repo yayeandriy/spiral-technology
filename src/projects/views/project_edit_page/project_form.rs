@@ -11,6 +11,7 @@ use crate::shared::data_state_model::DataState;
 use crate::ui::button::DangerButton;
 use crate::ui::form::form_input_field::InputField;
 use crate::ui::form::form_text_area::FormTextArea;
+use crate::ui::tabs::Tabs;
 
 
 impl DataState<Project> {
@@ -185,15 +186,17 @@ pub fn ProjectForm(
                                 data_state=(*project_state_clone).clone()
                                 data_handle=(*handle_save_project_clone).clone()
                                 field_name="desc".to_string()
-                            />                           
-                            <ContentPage />
-                        </div>
-                        <div class="grow transition-all" >
-                    
-                                    <ProjectAreasEditor
+                            />
+                            <Tabs
+                                tabs_titles=vec!["Content".into(), "Areas".into()]
+                            >
+                                <ContentPage />
+                                <ProjectAreasEditor
                                     project_id=project_id
                                     />
-                                     </div>
+                            </Tabs>
+                        </div>
+                      
                                 }.into_any()
                     }else{
                         view!{ <div class="w-1/2 flex flex-col space-y-4">

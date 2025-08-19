@@ -1,6 +1,6 @@
 pub mod button;
-pub mod input;
 pub mod select;
+pub mod tabs;
 pub mod checkbox;
 pub mod label;
 pub mod error;
