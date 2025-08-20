@@ -3,6 +3,7 @@ use crate::ui::form::simple_form_input::SimpleFormInput;
 use crate::ui::button::{Button, ButtonVariant};
 use leptos::prelude::*;
 use leptos::{ev, task::spawn_local};
+use leptos_router::hooks::use_navigate;
 
 #[component]
 pub fn LoginForm(
@@ -10,11 +11,19 @@ pub fn LoginForm(
     show_register_link: Option<bool>,
 ) -> impl IntoView {
     let auth = use_auth();
+    let navigate = use_navigate();
     let (email, set_email) = signal(String::new());
     let (password, set_password) = signal(String::new());
     let (is_submitting, set_is_submitting) = signal(false);
 
     let show_register = show_register_link.unwrap_or(true);
+
+    // Effect to handle navigation after successful login
+    Effect::new(move |_| {
+        if auth.is_authenticated.0.get() && !auth.is_loading.0.get() {
+            navigate("/editor", Default::default());
+        }
+    });
 
     let on_submit = {
         let auth = auth.clone();

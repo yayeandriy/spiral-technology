@@ -44,11 +44,11 @@ pub fn App() -> impl IntoView {
                      </div>
                  }/>
                  
-                 <Route path=path!("/register") view=|| view! {
-                     <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-                         <AuthForm mode=AuthFormMode::Register />
-                     </div>
-                 }/>
+                //  <Route path=path!("/register") view=|| view! {
+                //      <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+                //          <AuthForm mode=AuthFormMode::Register />
+                //      </div>
+                //  }/>
                  
                  <Route path=path!("/reset-password") view=|| view! {
                      <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
