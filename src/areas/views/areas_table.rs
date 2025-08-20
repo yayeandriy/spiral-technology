@@ -87,7 +87,10 @@ pub fn AreasTable() -> impl IntoView {
         view!{
             <div class="flex flex-col w-full gap-2 mt-3">
                 {
-                    projects().iter().enumerate().map(|(project_index, project)| {
+                    let mut projects_vec = projects();
+                    projects_vec.sort_by(|a, b| a.title.cmp(&b.title));
+
+                    projects_vec.iter().enumerate().map(|(project_index, project)| {
                         let project_clone = project.clone();
                         let areas_ids = catalog_context.get_project_areas_ids(project_clone.id as i64);
                         let is_project_hovered = hovered_project_id().map_or(false, |id| id == project_clone.id.to_string());

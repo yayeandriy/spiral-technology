@@ -34,7 +34,8 @@ pub fn ProjectsList(
             
             <div class="">
                 {move || {
-                    let project_list = projects();
+                    let mut project_list = projects();
+                    project_list.sort_by_key(|p| p.title.clone());
 
                     if project_list.is_empty() {
                         view! {
