@@ -4,6 +4,7 @@ mod projects;
 mod areas;
 mod catalog;
 mod content;
+mod auth;
 mod shared;
 mod supabase;
 mod ui;
