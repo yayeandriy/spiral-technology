@@ -119,6 +119,18 @@ impl ProjectContext {
     }
 
 
+    pub fn get_project_by_id(&self, project_id: &str) -> Option<Project> {
+        if let Ok(id) = project_id.parse::<i32>() {
+            self.projects.0.get().iter().find(|p| p.id == id).cloned()
+        } else {
+            None
+        }
+    }
+
+    pub fn get_current_project(&self) -> Option<Project> {
+        self.current_project_id.0.get().as_ref().and_then(|id| self.get_project_by_id(id))
+    }
+
 }
 
 #[component]

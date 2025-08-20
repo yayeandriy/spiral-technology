@@ -1,10 +1,11 @@
 [package]
-name = "spotter"
+name = "spiral_technology_port"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 gloo-net = { version = "0.6.0", features = ["http"] }
+gloo-storage = "0.3.0"
 console_error_panic_hook = { version = "0.1.7" }
 leptos = { version = "0.8.6", features = ["csr"] }
 leptos_meta = "0.8.5"
@@ -31,3 +32,5 @@ serde_urlencoded = "0.7"
 futures = "0.3.31"
 leptos-use = "0.16.2"
 leptos_macro = "0.8.6"
+pulldown-cmark = "0.13.0"
+ammonia = "4.1.1"

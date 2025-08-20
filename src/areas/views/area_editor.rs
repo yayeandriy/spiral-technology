@@ -1,6 +1,6 @@
 use leptos::prelude::*;
 
-use crate::{areas::{model::ProjectArea, views::area_form::AreaForm}, ui::signal_button::{ButtonSize, SSecondaryButton}};
+use crate::{areas::{model::ProjectArea, views::area_form::AreaForm}, ui::button::{ButtonSize, SecondaryButton}};
 
 
 #[component]
@@ -26,24 +26,24 @@ pub fn AreaEditor(
                     if open_form.0.get() {
                         if let Some(area) = area {  
                             view! {
-                                <AreaForm area = area category=category.clone() is_open=open_form.1 />
+                                <AreaForm area = signal(Some(area)).0 category=category.clone() is_open=open_form.1 />
                             }.into_any()
                         }else{
                             view! {
-                                <AreaForm category=category.clone() is_open=open_form.1 />
+                                <AreaForm area = signal(None).0 category=category.clone() is_open=open_form.1 />
                             }.into_any()
                         }
                     } else {
                         view! {
                             <div class="w-full flex justify-end">
-                            <SSecondaryButton
+                            <SecondaryButton
                                 on_click=move |_| {
                                     open_area_editor();
                                 }
                                 size=ButtonSize::Small
                             >
                                 "➕"
-                            </SSecondaryButton>
+                            </SecondaryButton>
                             </div>
                         }.into_any()
                     }

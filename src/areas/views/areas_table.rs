@@ -1,5 +1,5 @@
 
-use leptos::prelude::*;
+use leptos::{logging, prelude::*};
 
 use crate::{areas::areas_context::use_areas, catalog::catalog_context::use_catalog, projects::projects_context::use_project};
 
@@ -11,18 +11,42 @@ use crate::{areas::areas_context::use_areas, catalog::catalog_context::use_catal
 pub fn AreasTable() -> impl IntoView {
 
     let areas_context = use_areas();
+    let areas_context_clone = areas_context.clone();
     let project_context = use_project();
+    let project_context_clone = project_context.clone();
     let projects = move || project_context.projects.0.get();
+    let hovered_project_id = move || {
+        let id = project_context_clone.hovered_project_id.0.get();
+        if let Some(id) = id {
+            logging::log!("Hovered Project ID: {}", id);
+        }
+        project_context_clone.hovered_project_id.0.get()
+    };  
     let catalog_context = use_catalog();
-    let default_category = String::from("technologies");
-    let current_category = signal::<String>(default_category);
+    let default_category = move || areas_context_clone.default_category.0.get(); 
+    let current_category = signal::<Option<String>>(None);
+    Effect::new(move || {
+        if let Some(default_cat) = default_category() {
+            if current_category.0.get().is_none() {
+                current_category.1.set(Some(default_cat));
+            }
+        } else {
+            logging::log!("No default category found");
+        }
+    });
 
     let areas_context_clone = areas_context.clone();
-    let areas = move || areas_context.get_area_by_category(&current_category.0.get());
+    let areas = move || {
+        if let Some(current_cat) = current_category.0.get() {
+            areas_context.get_areas_by_category(&current_cat)
+        } else {
+            vec![]
+        }
+    };
     let areas_clone = areas.clone();
     let categories = move || areas_context_clone.categories.0.get();
 
-    let project_line = move |ids: Vec<i64>, project_index: usize| {
+    let project_line = move |ids: Vec<i64>, project_index: usize, is_project_hovered: bool| {
         view!{
          <div class="flex w-full justify-between">
             {
@@ -31,6 +55,8 @@ pub fn AreasTable() -> impl IntoView {
                     let is_area_in_project = ids.contains(&area_clone.id);
                     let ml = if is_area_in_project { "" } else { "-ml-96" };
                     let delay = 0.05 * project_index as f32;
+                    let dot_color = if is_project_hovered { "bg-blue-500 h-4 w-4" } else { "bg-black h-2 w-2" };
+                    // logging::log!("Project Is Hovered: {}", dot_color());
                     view! {
                        <div class="cursor-pointer  h-[72px] w-full flex flex-col transition-colors duration-200 hover:text-black text-gray-800">
                             <div
@@ -44,7 +70,7 @@ pub fn AreasTable() -> impl IntoView {
                                 )"
                             >
                                 <div 
-                                class=format!("h-2 w-2 {ml} relative bg-black rounded-full transition-all ease-out duration-[1s]")  
+                                class=format!(" {ml} relative {dot_color} rounded-full transition-margin ease-out duration-[1s]")  
                                 style=format!("transition-delay: {delay}s;")
                                 />
                             </div>
@@ -64,22 +90,24 @@ pub fn AreasTable() -> impl IntoView {
                     projects().iter().enumerate().map(|(project_index, project)| {
                         let project_clone = project.clone();
                         let areas_ids = catalog_context.get_project_areas_ids(project_clone.id as i64);
-                        project_line(areas_ids, project_index)
+                        let is_project_hovered = hovered_project_id().map_or(false, |id| id == project_clone.id.to_string());
+                        project_line(areas_ids, project_index, is_project_hovered)
                     }).collect_view()
                 }
             </div>
         }
     };
     view! {
-        <div class="flex w-full justify-between mb-2">
+        <div class="flex w-full justify-between mb-2 sticky top-0 bg-white z-10">
             {
                 move || categories().into_iter().map(|cat| {
                     let cat_clone = cat.clone();
-                    let is_current = current_category.0.get() == cat_clone;
+                    let cat_clone_2 = cat.clone();
+                    let is_current = current_category.0.get() == Some(cat_clone);
                     view! {
                         <div
                             on:click=move |_| {
-                                current_category.1.set(cat_clone.clone());
+                                current_category.1.set(Some(cat_clone_2.clone()));
                             }
                             class="cursor-pointer transition-colors duration-200"
                             class:text-gray-200={!is_current}
@@ -90,7 +118,7 @@ pub fn AreasTable() -> impl IntoView {
                 }).collect::<Vec<_>>()
             }
         </div>
-        <div class="flex w-full justify-between">
+        <div class="flex w-full justify-between sticky top-0 bg-white z-10">
             {
                 move || areas().into_iter().map(|area| {
                     view! {
