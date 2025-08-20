@@ -25,6 +25,7 @@ use leptos::prelude::Get;
 pub struct AreaContext {
     pub areas: (ReadSignal<Vec<ProjectArea>>, WriteSignal<Vec<ProjectArea>>),
     pub categories: (ReadSignal<Vec<String>>, WriteSignal<Vec<String>>),
+    pub default_category: (ReadSignal<Option<String>>, WriteSignal<Option<String>>),
     pub is_loading: (ReadSignal<bool>, WriteSignal<bool>),
     pub error: (ReadSignal<Option<String>>, WriteSignal<Option<String>>),
     url_path: String,
@@ -35,6 +36,7 @@ impl AreaContext {
         Self {
             areas: signal::<Vec<ProjectArea>>(vec![]),
             categories: signal::<Vec<String>>(vec![]),
+            default_category: signal(None),
             is_loading: signal(false),
             error: signal(None),
             url_path: "/rest/v1/areas?select=*".to_string(),
@@ -68,6 +70,8 @@ impl AreaContext {
         categories.sort();
         categories.dedup();
         self.categories.1.set(categories);
+        let first_category = self.categories.0.get().first().cloned();
+        self.default_category.1.set(first_category);
         logging::log!("Parsed categories: {:?}", self.categories.0.get());
     }
 

@@ -11,6 +11,7 @@ use crate::{areas::areas_context::use_areas, catalog::catalog_context::use_catal
 pub fn AreasTable() -> impl IntoView {
 
     let areas_context = use_areas();
+    let areas_context_clone = areas_context.clone();
     let project_context = use_project();
     let project_context_clone = project_context.clone();
     let projects = move || project_context.projects.0.get();
@@ -22,11 +23,26 @@ pub fn AreasTable() -> impl IntoView {
         project_context_clone.hovered_project_id.0.get()
     };  
     let catalog_context = use_catalog();
-    let default_category = String::from("technologies");
-    let current_category = signal::<String>(default_category);
+    let default_category = move || areas_context_clone.default_category.0.get(); 
+    let current_category = signal::<Option<String>>(None);
+    Effect::new(move || {
+        if let Some(default_cat) = default_category() {
+            if current_category.0.get().is_none() {
+                current_category.1.set(Some(default_cat));
+            }
+        } else {
+            logging::log!("No default category found");
+        }
+    });
 
     let areas_context_clone = areas_context.clone();
-    let areas = move || areas_context.get_areas_by_category(&current_category.0.get());
+    let areas = move || {
+        if let Some(current_cat) = current_category.0.get() {
+            areas_context.get_areas_by_category(&current_cat)
+        } else {
+            vec![]
+        }
+    };
     let areas_clone = areas.clone();
     let categories = move || areas_context_clone.categories.0.get();
 
@@ -86,11 +102,12 @@ pub fn AreasTable() -> impl IntoView {
             {
                 move || categories().into_iter().map(|cat| {
                     let cat_clone = cat.clone();
-                    let is_current = current_category.0.get() == cat_clone;
+                    let cat_clone_2 = cat.clone();
+                    let is_current = current_category.0.get() == Some(cat_clone);
                     view! {
                         <div
                             on:click=move |_| {
-                                current_category.1.set(cat_clone.clone());
+                                current_category.1.set(Some(cat_clone_2.clone()));
                             }
                             class="cursor-pointer transition-colors duration-200"
                             class:text-gray-200={!is_current}
