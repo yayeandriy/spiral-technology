@@ -123,24 +123,26 @@ pub fn AreaForm(
     let area_clone = area.clone();
     let area_clone_2 = area.clone();
 
-    let mut area_state = if let Some(area) = area.get() {
+    let mut area_state = move || if let Some(area) = area.get() {
         DataState::<ProjectArea>::new(Some(area))
     } else {
         DataState::<ProjectArea>::from_category(category)
     };
    
+    let area_state_clone = area_state.clone();
+    let area_state_clone_2 = area_state.clone();
+    let area_state_clone_3 = area_state.clone();
+    let area_state_clone_4 = area_state.clone();
     
-    area_state.init_fields();
-    area_state.listen_for_changes();
+    area_state().init_fields();
+    area_state_clone_2().listen_for_changes();
+    
 
-    let area_state_clone = Arc::new(area_state.clone());
-    let area_state_clone_3 = Arc::new(area_state.clone());
-    let mut area_state_clone_4 = area_state.clone();
 
     let handle_reset_state = {
         let mut area_state_clone = area_state_clone_4.clone();
         move || {
-            area_state_clone.reset();
+            area_state_clone().reset();
             logging::log!("State is reset");            
         }
     };
@@ -153,7 +155,7 @@ pub fn AreaForm(
             let areas_context = areas_context.clone();
             let area_state = area_state_clone.clone();
             spawn_local(async move {
-                    let updated_area = <DataState<ProjectArea> as Clone>::clone(&area_state).into_data();
+                    let updated_area = <DataState<ProjectArea> as Clone>::clone(&area_state()).into_data();
                     areas_context.create_area(updated_area).await;
             });
         }
@@ -167,7 +169,7 @@ pub fn AreaForm(
             let areas_context = areas_context.clone();
             let area_state = area_state_clone.clone();
             spawn_local(async move {
-                    let updated_area = <DataState<ProjectArea> as Clone>::clone(&area_state).into_data();
+                    let updated_area = <DataState<ProjectArea> as Clone>::clone(&area_state()).into_data();
                     areas_context.update_area(updated_area).await;
             });
         }
@@ -180,7 +182,7 @@ pub fn AreaForm(
             let areas_context = areas_context.clone();
             let area_state = area_state_clone.clone();
             spawn_local(async move {
-                    let updated_area = <DataState<ProjectArea> as Clone>::clone(&area_state).into_data();
+                    let updated_area = <DataState<ProjectArea> as Clone>::clone(&area_state()).into_data();
                     
                     areas_context.delete_area(updated_area.id).await;
             });
@@ -190,7 +192,7 @@ pub fn AreaForm(
 
     let handle_create_area_clone = Arc::new(handle_create_area.clone());
     let handle_update_area_clone = Arc::new(handle_update_area.clone());
-    let mut handle_reset_state_clone = handle_reset_state.clone();
+    let handle_reset_state_clone = handle_reset_state.clone();
 
     
 
@@ -199,27 +201,31 @@ pub fn AreaForm(
             <div class="w-full flex flex-col space-y-4">
             {
                 move || if area_clone.get().is_some() {
+                    let area_state_clone = area_state_clone.clone(); 
+                    let area_state_clone_2 = area_state_clone.clone(); 
                     view! {
                          <InputField
-                        data_state=(*area_state_clone).clone()
+                        data_state=area_state_clone().clone()
                         data_handle=(*handle_update_area_clone).clone()
                         field_name="title".to_string()
                     />
                     <FormTextArea
-                        data_state=(*area_state_clone).clone()
+                        data_state=area_state_clone_2().clone()
                         data_handle=(*handle_update_area_clone).clone()
                         field_name="desc".to_string()
                     />             
                     }.into_any()
                 } else {
+                    let area_state_clone = area_state_clone.clone(); 
+                    let area_state_clone_2 = area_state_clone.clone(); 
                     view! {
                         <InputField
-                        data_state=(*area_state_clone).clone()
+                        data_state=area_state_clone().clone()
                         data_handle=(*handle_create_area_clone).clone()
                         field_name="title".to_string()
                     />
                     <FormTextArea
-                        data_state=(*area_state_clone).clone()
+                        data_state=area_state_clone_2().clone()
                         data_handle=(*handle_create_area_clone).clone()
                         field_name="desc".to_string()
                     />             
@@ -253,10 +259,14 @@ pub fn AreaForm(
                     
                     <CancelButton 
                     size=ButtonSize::Small
-                    on_click=move |_| {
-                        logging::log!("Canceling area edit...");
-                        handle_reset_state_clone();
-                        is_open.set(false);
+                    on_click={
+                        let handle_reset_state_clone = handle_reset_state_clone.clone();
+                        move |_| {
+                            let handle_reset_state_clone = handle_reset_state_clone.clone();
+                            logging::log!("Canceling area edit...");
+                            handle_reset_state_clone();
+                            is_open.set(false);
+                        }
                     }
                     >"╳"</CancelButton>
                     

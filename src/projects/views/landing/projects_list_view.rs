@@ -24,9 +24,17 @@ pub fn ProjectsView() -> impl IntoView {
         project_context_clone_2.hovered_project_id.1.set(None);
     };
     view! {
-        <div class="flex flex-col gap-2 mt-20">
+        <div class="flex flex-col gap-2 mt-[42px] pb-20 ">
+        <div class="text-gray-400 sticky top-0 bg-white z-10    " >
+            Projects
+        </div>
             {
-                move || projects().into_iter().map(|project| {
+                move || { 
+                     let mut projects_vec = projects();
+                    projects_vec.sort_by(|a, b| a.title.cmp(&b.title));
+                    
+                    projects_vec.into_iter()                    
+                    .map(|project| {
                     let project_clone = project.clone();
                     let handle_project_mouseenter = handle_project_mouseenter.clone();
                     let handle_project_mouseleave = handle_project_mouseleave.clone();
@@ -61,13 +69,14 @@ pub fn ProjectsView() -> impl IntoView {
                                   transparent 51%    
                                 )"
                             >
-                                <span class=format!("bg-white pr-2 group-hover:text-blue-500 {title_class}")>{project.title}</span>
+                                <span class=format!("bg-white w-[200px] truncate pr-2 group-hover:text-blue-500 {title_class}")>{project.title}</span>
                             </div>
                             <div class="text-gray-400 h-32px" >{project.desc}</div>
                         </a>
                         </div>
                     }
                 }).collect::<Vec<_>>()
+            }
             }
         </div>
     }

@@ -98,7 +98,7 @@ pub fn AreasTable() -> impl IntoView {
         }
     };
     view! {
-        <div class="flex w-full justify-between mb-2">
+        <div class="flex w-full justify-between mb-2 sticky top-0 bg-white z-10">
             {
                 move || categories().into_iter().map(|cat| {
                     let cat_clone = cat.clone();
@@ -118,7 +118,7 @@ pub fn AreasTable() -> impl IntoView {
                 }).collect::<Vec<_>>()
             }
         </div>
-        <div class="flex w-full justify-between">
+        <div class="flex w-full justify-between sticky top-0 bg-white z-10">
             {
                 move || areas().into_iter().map(|area| {
                     view! {
