@@ -98,6 +98,14 @@ impl DataState<ProjectArea> {
         }
     }
 
+    pub fn reset(&mut self) {
+        self.data.clear();
+        self.is_modified.1.set(vec![]);
+        self.id = -1;
+        self.created_at = String::new();
+        self.init_data = None;
+    }
+
 }
 
 
@@ -105,32 +113,38 @@ impl DataState<ProjectArea> {
 
 #[component]
 pub fn AreaForm(
-    #[prop(optional)]
-    area: Option<ProjectArea>,
+    area: ReadSignal<Option<ProjectArea>>,
     category: String,
     is_open: WriteSignal<bool>,
 ) -> impl IntoView {
-    let catalog_context = use_catalog();
     let areas_context = use_areas();
     let areas_context_clone = areas_context.clone();
 
     let area_clone = area.clone();
+    let area_clone_2 = area.clone();
 
-    let mut area_state = if let Some(area) = area {
+    let mut area_state = if let Some(area) = area.get() {
         DataState::<ProjectArea>::new(Some(area))
     } else {
         DataState::<ProjectArea>::from_category(category)
     };
-    
+   
     
     area_state.init_fields();
     area_state.listen_for_changes();
 
     let area_state_clone = Arc::new(area_state.clone());
-    let area_state_clone_2 = Arc::new(area_state.clone());
     let area_state_clone_3 = Arc::new(area_state.clone());
+    let mut area_state_clone_4 = area_state.clone();
 
-   
+    let handle_reset_state = {
+        let mut area_state_clone = area_state_clone_4.clone();
+        move || {
+            area_state_clone.reset();
+            logging::log!("State is reset");            
+        }
+    };
+
     let handle_create_area = {
         let areas_context = areas_context_clone.clone();
         let area_state_clone = area_state_clone_3.clone();
@@ -176,12 +190,15 @@ pub fn AreaForm(
 
     let handle_create_area_clone = Arc::new(handle_create_area.clone());
     let handle_update_area_clone = Arc::new(handle_update_area.clone());
+    let mut handle_reset_state_clone = handle_reset_state.clone();
+
+    
 
     view! {
         <div class="">
             <div class="w-full flex flex-col space-y-4">
             {
-                if area_clone.is_some() {
+                move || if area_clone.get().is_some() {
                     view! {
                          <InputField
                         data_state=(*area_state_clone).clone()
@@ -213,8 +230,9 @@ pub fn AreaForm(
                 </div>
                 <div class="flex justify-between mt-1">
                     {
-                        if let Some(area) = area_clone {
+                        move || if let Some(area) = area_clone_2.get() {
                             if area.id > 0 {
+                                let handle_delete_area = handle_delete_area.clone();
                                 view!{
                                      <DangerButton
                                         size=ButtonSize::Small
@@ -237,6 +255,7 @@ pub fn AreaForm(
                     size=ButtonSize::Small
                     on_click=move |_| {
                         logging::log!("Canceling area edit...");
+                        handle_reset_state_clone();
                         is_open.set(false);
                     }
                     >"╳"</CancelButton>
