@@ -48,11 +48,11 @@ pub fn AreaEditor(
                     if open_form.0.get() {
                         if let Some(area) = area.0.get() {
                             view! {
-                                <AreaForm area = signal(Some(area)).0 category=category.clone() is_open=open_form.1 />
+                                <AreaForm area=area category=category.clone() is_open=open_form.1 />
                             }.into_any()
                         }else{
                             view! {
-                                <AreaForm area = signal(None).0 category=category.clone() is_open=open_form.1 />
+                                <AreaForm category=category.clone() is_open=open_form.1 />
                             }.into_any()
                         }
                     } else {
