@@ -1,0 +1,60 @@
+body{
+    display: flex;
+    width: 100%;
+    height: 100%;
+    background-color: #ffffff;
+    color: rgb(0, 0, 0);
+    font-size: 17px;
+    line-height: 20px;
+    padding: 0;
+    margin: 0;
+}
+html{
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+div{
+    transition: all 0.2s;
+  }
+  
+tr{
+    transition: all 0.2s;
+    
+}
+
+/* width */
+::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: rgb(255, 255, 255);
+  }
+  
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: rgb(213, 213, 214);
+    border-radius: 3px;
+  }
+  
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #bdbcbc;
+  }
+
+  th {
+    position: sticky;
+    top: 0; /* Don't forget this, required for the stickiness */
+    box-shadow: 0 2px 2px -1px rgba(255, 255, 255, 0.4);
+  }
+
+  .prose img{
+    max-width: 100%;
+    height: auto;
+    padding: 20px 0;
+  }

@@ -110,7 +110,7 @@ pub fn AreasTable() -> impl IntoView {
         }
     };
     view! {
-        <div class="flex w-full justify-between mb-2 sticky top-0 bg-white z-10">
+        <div class="flex w-full justify-between mb-2 mt-1 sticky top-0 bg-white z-10">
             {
                 move || categories().into_iter().map(|cat| {
                     let cat_clone = cat.clone();
