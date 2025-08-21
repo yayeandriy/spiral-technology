@@ -1,5 +1,5 @@
 
-use leptos::{logging, prelude::*};
+use leptos::{html::I, logging, prelude::*};
 
 use crate::{areas::areas_context::use_areas, catalog::catalog_context::use_catalog, projects::projects_context::use_project};
 
@@ -55,7 +55,9 @@ pub fn AreasTable() -> impl IntoView {
                     let is_area_in_project = ids.contains(&area_clone.id);
                     let ml = if is_area_in_project { "" } else { "-ml-96" };
                     let delay = 0.05 * project_index as f32;
-                    let dot_color = if is_project_hovered { "bg-blue-500 h-4 w-4" } else { "bg-black h-2 w-2" };
+                    let dot_color = if is_project_hovered { "h-3 w-3 " } else { "opacity-0" };
+                    let hover_style = if !is_project_hovered { "width: 0px; height: 0px;" } 
+                    else { "width: 12px; height: 12px; background: blue" };
                     // logging::log!("Project Is Hovered: {}", dot_color());
                     view! {
                        <div class="cursor-pointer  h-[72px] w-full flex flex-col transition-colors duration-200 hover:text-black text-gray-800">
@@ -70,8 +72,15 @@ pub fn AreasTable() -> impl IntoView {
                                 )"
                             >
                                 <div 
-                                class=format!(" {ml} relative {dot_color} rounded-full transition-margin ease-out duration-[1s]")  
+                                class=format!(" {ml} relative bg-black  h-2 w-2 rounded-full transition-margin ease-out duration-[1s]")  
                                 style=format!("transition-delay: {delay}s;")
+                                class:hidden=is_project_hovered
+                                />
+                                <div 
+                                class=format!(" {ml} relative bg-black   rounded-full transition-size ease-out duration-[0.4s]")  
+                                style=format!("{hover_style}")
+
+                                class:hidden=!is_project_hovered
                                 />
                             </div>
                             <div class="text-gray-400 h-32px" ></div>
@@ -88,7 +97,7 @@ pub fn AreasTable() -> impl IntoView {
             <div class="flex flex-col w-full gap-2 mt-3">
                 {
                     let mut projects_vec = projects();
-                    projects_vec.sort_by(|a, b| a.title.cmp(&b.title));
+                    projects_vec.sort_by(|a, b| a.order.cmp(&b.order));
 
                     projects_vec.iter().enumerate().map(|(project_index, project)| {
                         let project_clone = project.clone();

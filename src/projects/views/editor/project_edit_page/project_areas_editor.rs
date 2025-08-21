@@ -45,7 +45,8 @@ pub fn ProjectAreasEditor(
         move || {
             let ids = project_areas_ids.get();
             let areas = all_areas.get();
-            areas.iter().filter(|area| ids.contains(&area.id)).map(|area| area.title.clone()).collect::<Vec<_>>()
+            areas.iter().filter(|area| ids.contains(&area.id))            
+            .map(|area| format!("{} - {}", area.order.unwrap_or(0), area.title.clone())).collect::<Vec<_>>()
         }
     });
 
@@ -122,7 +123,8 @@ fn CategorySection(
                         move || {
                             let areas = category_areas.get();
                             let project_areas_current = project_areas.get();
-                            areas.iter().filter(|area| project_areas_current.iter().any(|pa| &area.title == pa))
+                            areas.iter().filter(|area| project_areas_current.iter()
+                            .any(|pa| &format!("{} - {}", area.order.unwrap_or(0), area.title.clone()) == pa))
                              .map(|area| view!{ <div class="uppercase tracking-wider text-[10px] max-w-24 truncate px-2 text-white bg-black rounded-[6px]" >{area.title.clone()}</div> }).collect_view()
                         }
                     }
@@ -140,7 +142,9 @@ fn CategorySection(
                                 areas.sort_by(|a, b| a.order.unwrap_or(0).cmp(&b.order.unwrap_or(0)));
                                 areas.iter().map(|area| format!("{} - {}", area.order.unwrap_or(0), area.title.clone())).collect::<Vec<String>>()
                             },
-                            project_areas,
+                            {
+                                project_areas
+                            },
                             {
                                 let catalog_context = catalog_context.clone();
                                 let all_areas = all_areas.clone();
