@@ -123,7 +123,7 @@ pub fn AreaForm(
     let area_clone = area.clone();
     let area_clone_2 = area.clone();
 
-    let mut area_state = move || if let Some(area) = area.get() {
+    let area_state = move || if let Some(area) = area.get() {
         DataState::<ProjectArea>::new(Some(area))
     } else {
         DataState::<ProjectArea>::from_category(category)
@@ -140,11 +140,11 @@ pub fn AreaForm(
 
 
     let handle_reset_state = {
-        let mut area_state_clone = area_state_clone_4.clone();
-        move || {
-            area_state_clone().reset();
-            logging::log!("State is reset");            
-        }
+        // let mut area_state_clone = area_state_clone_4.clone();
+        // move || {
+        //     area_state_clone().reset();
+        //     logging::log!("State is reset");            
+        // }
     };
 
     let handle_create_area = {
@@ -264,7 +264,7 @@ pub fn AreaForm(
                         move |_| {
                             let handle_reset_state_clone = handle_reset_state_clone.clone();
                             logging::log!("Canceling area edit...");
-                            handle_reset_state_clone();
+                            // handle_reset_state_clone();
                             is_open.set(false);
                         }
                     }

@@ -132,7 +132,7 @@ fn CategorySection(
                 when=move || is_expanded.get()
                 fallback=|| view! { <div/> }
             >
-                <div class="flex gap-1">
+                <div class="flex gap-1 relative">
                     {
                         Select(
                             move || category_areas.get().iter().map(|area| area.title.clone()).collect::<Vec<String>>(),
@@ -170,7 +170,7 @@ fn CategorySection(
                     }
                     {
                         view!{
-                            <div class="flex-col pt-[11px]" >
+                            <div class="flex-col pt-[11px] absolute right-4" >
                             <For
                                 each=move || category_areas.get()
                                 key=|area| area.id
@@ -197,18 +197,12 @@ fn CategorySection(
                     let category_for_editor = category.clone();
                     move || {
                         let area_to_pass = local_area_to_edit.get();
-                        match area_to_pass {
-                            Some(area) => view! {
+                        logging::log!("Area to edit: {:?}", area_to_pass);
+                         view! {
                                 <div class="mt-2">
-                                    <AreaEditor area=area category=category_for_editor.clone() />
-                                </div>
-                            },
-                            None => view! {
-                                <div class="mt-2">
-                                    <AreaEditor category=category_for_editor.clone() />
+                                    <AreaEditor area=move || local_area_to_edit.get() category=category_for_editor.clone() />
                                 </div>
                             }
-                        }
                     }
                 }
             </Show>
