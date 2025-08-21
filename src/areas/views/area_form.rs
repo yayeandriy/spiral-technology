@@ -22,9 +22,11 @@ impl DataState<ProjectArea> {
         if let Some(project) = &self.init_data {
             self.data.insert("title".to_string(), signal(project.title.clone()));
             self.data.insert("desc".to_string(), signal(project.desc.clone().unwrap_or_default()));
+            self.data.insert("order".to_string(), signal(project.order.map_or(String::new(), |o| o.to_string())));
         } else {
             self.data.insert("title".to_string(), signal(String::new()));
             self.data.insert("desc".to_string(), signal(String::new()));
+            self.data.insert("order".to_string(), signal(String::new()));
         }
     }
 
@@ -32,6 +34,9 @@ impl DataState<ProjectArea> {
         ProjectArea {
             title: self.data.get("title").map(|(r, _)| r.get()).unwrap_or_default(),
             desc: Some(self.data.get("desc").map(|(r, _)| r.get()).unwrap_or_default()),
+            order: self.data.get("order")
+                .map(|(r, _)| r.get())
+                .and_then(|s: String| s.parse::<i32>().ok()),
             id: self.id as i64,
             created_at: Some(self.created_at),
             category: self.init_data.as_ref().map_or("no category".to_string(), |p| p.category.clone()),
@@ -43,6 +48,7 @@ impl DataState<ProjectArea> {
             match field_name {
                 "title" => project.title.clone(),
                 "desc" => project.desc.clone().unwrap_or_default(),
+                "order" => project.order.map_or(String::new(), |o| o.to_string()),
                 _ => String::new(),
             }
         } else {
@@ -88,6 +94,7 @@ impl DataState<ProjectArea> {
             desc: None,
             created_at: Some(String::new()),
             category,
+            order: None,
         };
         Self {
             data: HashMap::new(),
@@ -158,6 +165,7 @@ let handle_update_area = {
         let mut on_close = on_close;
         spawn_local(async move {
                 let updated_area = <DataState<ProjectArea> as Clone>::clone(&area_state).into_data();
+                logging::log!("Updating area: {:?}", updated_area);
                 areas_context.update_area(updated_area).await;
                 on_close(false);
         });
@@ -192,11 +200,16 @@ let mut on_close = on_close.clone();
                     let handle_update_area_clone = handle_update_area_clone.clone();
                     
                     view! {
-                         <InputField
-                        data_state=(*area_state_clone).clone()
-                        data_handle=(*handle_update_area_clone).clone()
-                        field_name="title".to_string()
-                    />
+                        <InputField
+                            data_state=(*area_state_clone).clone()
+                            data_handle=(*handle_update_area_clone).clone()
+                            field_name="title".to_string()
+                        />
+                        <InputField
+                            data_state=(*area_state_clone).clone()
+                            data_handle=(*handle_update_area_clone).clone()
+                            field_name="order".to_string()
+                        />
                     <FormTextArea
                         data_state=(*area_state_clone).clone()
                         data_handle=(*handle_update_area_clone).clone()

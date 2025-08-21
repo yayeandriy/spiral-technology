@@ -135,7 +135,11 @@ fn CategorySection(
                 <div class="flex gap-1 relative">
                     {
                         Select(
-                            move || category_areas.get().iter().map(|area| area.title.clone()).collect::<Vec<String>>(),
+                            move || {
+                                let mut areas = category_areas.get();
+                                areas.sort_by(|a, b| a.order.unwrap_or(0).cmp(&b.order.unwrap_or(0)));
+                                areas.iter().map(|area| format!("{} - {}", area.order.unwrap_or(0), area.title.clone())).collect::<Vec<String>>()
+                            },
                             project_areas,
                             {
                                 let catalog_context = catalog_context.clone();
@@ -172,7 +176,11 @@ fn CategorySection(
                         view!{
                             <div class="flex-col pt-[11px] absolute right-4" >
                             <For
-                                each=move || category_areas.get()
+                                each=move || {
+                                    let mut areas = category_areas.get();
+                                    areas.sort_by(|a, b| a.order.unwrap_or(0).cmp(&b.order.unwrap_or(0)));
+                                    areas
+                                }
                                 key=|area| area.id
                                 children=move |area| {
                                     let area_for_edit = area.clone();

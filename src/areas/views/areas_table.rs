@@ -123,14 +123,17 @@ pub fn AreasTable() -> impl IntoView {
         </div>
         <div class="flex w-full justify-between sticky top-0 bg-white z-10">
             {
-                move || areas().into_iter().map(|area| {
+                move ||{ 
+                    let mut areas = areas();
+                    areas.sort_by(|a, b| a.order.unwrap_or(0).cmp(&b.order.unwrap_or(0)));
+                    areas.into_iter().map(|area| {
                     view! {
                         <div class="w-full text-center">
                             <div class="">{area.title}</div>
                             // <div class="text-sm text-gray-500">{area.desc.clone().unwrap_or_default()}</div>
                         </div>
                     }
-                }).collect::<Vec<_>>()
+                }).collect::<Vec<_>>()}
             }
         </div>
         <div>
