@@ -94,7 +94,7 @@ fn CategorySection(
 
     // Create a separate area_to_edit signal for this category
     let local_area_to_edit = RwSignal::new(None::<ProjectArea>);
-
+    let open_form = signal(false);
     view! {
         <div class="border-b border-x w-full first:border-t first:rounded-t-[6px] p-2  hover:bg-gray-100 last:rounded-b-[6px]">
             <div class="text-sm mb-1 cursor-pointer transition-all flex justify-between"
@@ -182,6 +182,7 @@ fn CategorySection(
                                             size=ButtonSize::Small
                                             on_click=move |_| {
                                                 local_area_to_edit.set(Some(area_for_edit.clone()));
+                                                open_form.1.set(true);
                                             }>
                                                 {"✏️"}
                                             </SecondaryButton>
@@ -200,7 +201,11 @@ fn CategorySection(
                         logging::log!("Area to edit: {:?}", area_to_pass);
                          view! {
                                 <div class="mt-2">
-                                    <AreaEditor area=move || local_area_to_edit.get() category=category_for_editor.clone() />
+                                    <AreaEditor 
+                                        area=move || local_area_to_edit.get() 
+                                        category=category_for_editor.clone() 
+                                        open_form=open_form.clone()
+                                    />
                                 </div>
                             }
                     }

@@ -1,4 +1,4 @@
-use leptos::prelude::*;
+use leptos::{ logging, prelude::*};
 
 use crate::{areas::{model::ProjectArea, views::area_form::AreaForm}, ui::button::{ButtonSize, SecondaryButton}};
 
@@ -7,9 +7,11 @@ use crate::{areas::{model::ProjectArea, views::area_form::AreaForm}, ui::button:
 pub fn AreaEditor(
     area:impl Fn() -> Option<ProjectArea> + Clone + Copy + Send + 'static,
     category: String,
+    open_form: (ReadSignal<bool>, WriteSignal<bool>),
 ) -> impl IntoView {
     // If an area is provided, automatically open the form for editing
-    let open_form = signal(area().is_some());
+    let init_area = area();
+    // let open_form = signal(false);
     let area = signal(area());
     let category_clone = category.clone();
     let open_area_editor = move || {
@@ -17,42 +19,32 @@ pub fn AreaEditor(
        open_form.1.set(true);
     };
     let area_clone = area.clone();
-    // let area_clone = move || {
-    //     if let Some(area) = area_clone {
-    //         Some(area)
-    //     } else {
-    //         None
-    //     }
-    // };
+   
+   Effect::new(move || {
+       let is_open = open_form.0.get();
+       logging::log!("AreaEditor is_open: {}", is_open);
+    });
+
     view! {
-        <div class="text-sm w-full flex-col">
-            <div>
-            {
-                move || if let Some(area) = area_clone.0.get() {
-                    
-                    view! {
-                        <h2 class="text-lg font-semibold mb-4">"Edit Area" {area.title}</h2>
-                    }.into_any()
-                } else {
-                    view! {
-                        <h2 class="text-lg font-semibold mb-4">"Create New Area"</h2>
-                    }.into_any()    
-                }
-            }
-            </div>
+        <div class="text-sm w-full flex-col">            
             {
                 move || {
                     let area = area.clone();
                     let category = category_clone.clone();
                     let open_area_editor = open_area_editor.clone();
-                    if open_form.0.get() {
+                    move || if open_form.0.get() {
                         if let Some(area) = area.0.get() {
                             view! {
-                                <AreaForm area=area category=category.clone() is_open=open_form.1 />
+                                <AreaForm area=area category=category.clone() on_close=move |is_open| {
+                                    logging::log!("Updated AreaForm closed: {}", is_open);
+                                    open_form.1.set(is_open);
+                                } />
                             }.into_any()
                         }else{
                             view! {
-                                <AreaForm category=category.clone() is_open=open_form.1 />
+                                <AreaForm category=category.clone() on_close=move |is_open| {
+                                    open_form.1.set(is_open);
+                                }   />
                             }.into_any()
                         }
                     } else {
