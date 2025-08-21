@@ -110,7 +110,8 @@ pub fn AreasTable() -> impl IntoView {
         }
     };
     view! {
-        <div class="flex w-full justify-between mb-2 mt-1 sticky top-0 bg-white z-10">
+        <div class="sticky top-0 pt-12 z-10  bg-white  " >
+        <div class="flex w-full grow justify-between pb-2 text-[15px]">
             {
                 move || categories().into_iter().map(|cat| {
                     let cat_clone = cat.clone();
@@ -122,7 +123,7 @@ pub fn AreasTable() -> impl IntoView {
                                 current_category.1.set(Some(cat_clone_2.clone()));
                             }
                             class="cursor-pointer transition-colors duration-200"
-                            class:text-gray-200={!is_current}
+                            class:text-gray-300={!is_current}
                             >
                             <div>{cat}</div>
                         </div>
@@ -130,22 +131,25 @@ pub fn AreasTable() -> impl IntoView {
                 }).collect::<Vec<_>>()
             }
         </div>
-        <div class="flex w-full justify-between sticky top-0 bg-white z-10">
+        <div class="flex w-full grow justify-between pt-2 pb-2   ">
             {
                 move ||{ 
                     let mut areas = areas();
                     areas.sort_by(|a, b| a.order.unwrap_or(0).cmp(&b.order.unwrap_or(0)));
                     areas.into_iter().map(|area| {
                     view! {
-                        <div class="w-full text-center">
+                        <div class="w-full text-center relative">
                             <div inner_html=area.to_format() class=""/>
+                            <div class="absolute w-[1px] h-4 mt-2  bg-gray-300 left-1/2 transform -translate-x-1/2" />
                             // <div class="text-sm text-gray-500">{area.desc.clone().unwrap_or_default()}</div>
                         </div>
                     }
                 }).collect::<Vec<_>>()}
             }
+        
         </div>
-        <div>
+        </div>
+        <div class="mt-[20px]">
             {move || areas_project_match()}
         </div>
     }

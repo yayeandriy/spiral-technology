@@ -24,9 +24,12 @@ pub fn ProjectsView() -> impl IntoView {
         project_context_clone_2.hovered_project_id.1.set(None);
     };
     view! {
-        <div class="flex flex-col gap-2 mt-[41.5px] pb-20 ">
-        <div class="text-gray-400 sticky top-0 bg-white z-10    " >
-            Projects
+        <div class="flex flex-col gap-2 pb-20 ">
+        <div class="text-gray-400 sticky top-0 pt-[50px] pb-[56.5px] bg-white z-10 relative   " >
+            <div class="">
+                Projects
+            </div>
+            // <div class="absolute w-[1px] h-10 mt-2  bg-gray-300 left-0 transform -translate-x-0" />
         </div>
             {
                 move || { 
@@ -73,7 +76,7 @@ pub fn ProjectsView() -> impl IntoView {
                                 <span class="pr-1 text-gray-400 bg-white">{order_formatted}.</span>
                                 <span class=format!("bg-white w-[200px] truncate pr-2 group-hover:text-blue-500 {title_class}")>{project.title}</span>
                             </div>
-                            <div class="text-gray-400 h-32px -mt-2" >{project.desc}</div>
+                            <div class="text-gray-400 h-32px -mt-2 w-[300px] truncate text-[15px]" >{project.desc}</div>
                         </a>
                         </div>
                     }
