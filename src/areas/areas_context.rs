@@ -39,7 +39,7 @@ impl AreaContext {
             default_category: signal(None),
             is_loading: signal(false),
             error: signal(None),
-            url_path: "/rest/v1/areas?select=*".to_string(),
+            url_path: "/rest/v1/areas_view?select=*".to_string(),
         }
     }
 

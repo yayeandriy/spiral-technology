@@ -37,6 +37,7 @@ impl DataState<ProjectArea> {
             order: self.data.get("order")
                 .map(|(r, _)| r.get())
                 .and_then(|s: String| s.parse::<i32>().ok()),
+            format: self.init_data.as_ref().and_then(|p| p.format.clone()),
             id: self.id as i64,
             created_at: Some(self.created_at),
             category: self.init_data.as_ref().map_or("no category".to_string(), |p| p.category.clone()),
@@ -95,6 +96,7 @@ impl DataState<ProjectArea> {
             created_at: Some(String::new()),
             category,
             order: None,
+            format: None,
         };
         Self {
             data: HashMap::new(),

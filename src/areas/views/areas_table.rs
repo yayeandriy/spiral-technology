@@ -74,14 +74,14 @@ pub fn AreasTable() -> impl IntoView {
                                 <div 
                                 class=format!(" {ml} relative bg-black  h-2 w-2 rounded-full transition-margin ease-out duration-[1s]")  
                                 style=format!("transition-delay: {delay}s;")
-                                class:hidden=is_project_hovered
+                                // class:hidden=is_project_hovered
                                 />
-                                <div 
-                                class=format!(" {ml} relative bg-black   rounded-full transition-size ease-out duration-[0.4s]")  
-                                style=format!("{hover_style}")
+                                // <div 
+                                // class=format!(" {ml} relative bg-black   rounded-full transition-size ease-out duration-[0.4s]")  
+                                // style=format!("{hover_style}")
 
-                                class:hidden=!is_project_hovered
-                                />
+                                // class:hidden=!is_project_hovered
+                                // />
                             </div>
                             <div class="text-gray-400 h-32px" ></div>
                         </div>
@@ -138,7 +138,7 @@ pub fn AreasTable() -> impl IntoView {
                     areas.into_iter().map(|area| {
                     view! {
                         <div class="w-full text-center">
-                            <div class="">{area.title}</div>
+                            <div inner_html=area.to_format() class=""/>
                             // <div class="text-sm text-gray-500">{area.desc.clone().unwrap_or_default()}</div>
                         </div>
                     }
