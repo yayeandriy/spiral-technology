@@ -31,8 +31,7 @@ pub fn ProjectsView() -> impl IntoView {
             {
                 move || { 
                      let mut projects_vec = projects();
-                    projects_vec.sort_by(|a, b| a.title.cmp(&b.title));
-                    
+                    projects_vec.sort_by_key(|p| p.order.clone()); 
                     projects_vec.into_iter()                    
                     .map(|project| {
                     let project_clone = project.clone();
@@ -44,6 +43,8 @@ pub fn ProjectsView() -> impl IntoView {
                     } else {
                         "text-black"
                     };
+                    let order = project.order.clone().unwrap_or_default().to_string();
+                    let order_formatted = if order.is_empty() { "00".to_string() } else { format!("{:02}", order.parse::<u32>().unwrap_or(0)) };
                     view! {
                         <div 
                          on:mouseenter=move |_:MouseEvent| {
@@ -69,6 +70,7 @@ pub fn ProjectsView() -> impl IntoView {
                                   transparent 51%    
                                 )"
                             >
+                                <span class="pr-1 text-gray-400 bg-white">{order_formatted}.</span>
                                 <span class=format!("bg-white w-[200px] truncate pr-2 group-hover:text-blue-500 {title_class}")>{project.title}</span>
                             </div>
                             <div class="text-gray-400 h-32px" >{project.desc}</div>

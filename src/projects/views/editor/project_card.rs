@@ -13,7 +13,8 @@ pub fn ProjectsCard(
             <div class=format!("{} {}", base_class, selected_class)>
                  <a class="flex flex-col items-start" href=format!("/editor/{}", project.id) >
                        <div>
-                            {project.clone().title} 
+                         <span class="pr-1">{project.clone().order}.</span>
+                         <span>{project.clone().title} </span>
                        </div>                        
                        <div class="opacity-60 h-6">
                             {project.clone().desc} 

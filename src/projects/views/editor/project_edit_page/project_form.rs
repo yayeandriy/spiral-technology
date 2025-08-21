@@ -38,9 +38,11 @@ impl DataState<Project> {
         if let Some(project) = &self.init_data {
             self.data.insert("title".to_string(), signal(project.title.clone()));
             self.data.insert("desc".to_string(), signal(project.desc.clone().unwrap_or_default()));
+            self.data.insert("order".to_string(), signal(project.order.unwrap_or_default().to_string()));
         } else {
             self.data.insert("title".to_string(), signal(String::new()));
             self.data.insert("desc".to_string(), signal(String::new()));
+            self.data.insert("order".to_string(), signal(String::new()));
         }
     }
 
@@ -48,6 +50,7 @@ impl DataState<Project> {
         Project {
             title: self.data.get("title").map(|(r, _)| r.get()).unwrap_or_default(),
             desc: Some(self.data.get("desc").map(|(r, _)| r.get()).unwrap_or_default()),
+            order: self.data.get("order").map(|(r, _)| r.get()).and_then(|s| s.parse().ok()),
             id: self.id,
             created_at: Some(self.created_at),
         }
@@ -58,6 +61,7 @@ impl DataState<Project> {
             match field_name {
                 "title" => project.title.clone(),
                 "desc" => project.desc.clone().unwrap_or_default(),
+                "order" => project.order.unwrap_or_default().to_string(),
                 _ => String::new(),
             }
         } else {
@@ -181,6 +185,11 @@ pub fn ProjectForm(
                                 data_state=(*project_state_clone).clone()
                                 data_handle=(*handle_save_project_clone).clone()
                                 field_name="title".to_string()
+                            />
+                            <InputField
+                                data_state=(*project_state_clone).clone()
+                                data_handle=(*handle_save_project_clone).clone()
+                                field_name="order".to_string()
                             />
                             <FormTextArea
                                 data_state=(*project_state_clone).clone()

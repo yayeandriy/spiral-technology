@@ -7,6 +7,7 @@ pub struct Project {
     pub title: String,
     pub desc: Option<String>,
     pub created_at: Option<String>,
+    pub order: Option<i32>,
 }
 
 impl Project {
@@ -14,6 +15,7 @@ impl Project {
         ProjectDto {
             title: self.title.clone(),
             desc: self.desc.clone(),
+            order: self.order.clone(),
         }
     }
 }
@@ -22,4 +24,5 @@ impl Project {
 pub struct ProjectDto {
     pub title: String,
     pub desc: Option<String>,
+    pub order: Option<i32>,
 }
