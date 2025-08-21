@@ -7,6 +7,7 @@ pub struct ProjectArea {
     pub title: String,
     pub category: String,
     pub desc: Option<String>,
+    pub order: Option<i32>
 }
 
 
@@ -17,6 +18,7 @@ impl ProjectArea {
             title: self.title.clone(),
             category: self.category.clone(),
             desc: self.desc.clone(),
+            order: self.order,
         }
     }
 }
@@ -26,6 +28,7 @@ pub struct ProjectAreaDto {
     pub title: String,
     pub desc: Option<String>,
     pub category: String,
+    pub order: Option<i32>,
 }
 
 impl ProjectAreaDto {
@@ -34,6 +37,7 @@ impl ProjectAreaDto {
             title: String::new(),
             desc: None,
             category,
+            order: None,
         }
     }
 }

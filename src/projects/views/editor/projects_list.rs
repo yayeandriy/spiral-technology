@@ -34,7 +34,9 @@ pub fn ProjectsList(
             
             <div class="">
                 {move || {
-                    let project_list = projects();
+                    let mut project_list = projects();
+                    project_list.sort_by_key(|p| p.order.clone());
+                    // project_list.sort_by_key(|p| std::cmp::Reverse(p.order.clone()));
 
                     if project_list.is_empty() {
                         view! {

@@ -1,36 +1,50 @@
-use leptos::prelude::*;
+use leptos::{ logging, prelude::*};
 
 use crate::{areas::{model::ProjectArea, views::area_form::AreaForm}, ui::button::{ButtonSize, SecondaryButton}};
 
 
 #[component]
 pub fn AreaEditor(
-     #[prop(optional)]
-    area: Option<ProjectArea>,
+    area:impl Fn() -> Option<ProjectArea> + Clone + Copy + Send + 'static,
     category: String,
+    open_form: (ReadSignal<bool>, WriteSignal<bool>),
 ) -> impl IntoView {
     // If an area is provided, automatically open the form for editing
-    let open_form = signal(area.is_some());
+    let init_area = area();
+    // let open_form = signal(false);
+    let area = signal(area());
     let category_clone = category.clone();
     let open_area_editor = move || {
+        area.1.set(None);
        open_form.1.set(true);
     };
+    let area_clone = area.clone();
+   
+   Effect::new(move || {
+       let is_open = open_form.0.get();
+       logging::log!("AreaEditor is_open: {}", is_open);
+    });
 
     view! {
-        <div class="text-sm w-full flex-col">
+        <div class="text-sm w-full flex-col">            
             {
                 move || {
                     let area = area.clone();
                     let category = category_clone.clone();
                     let open_area_editor = open_area_editor.clone();
-                    if open_form.0.get() {
-                        if let Some(area) = area {  
+                    move || if open_form.0.get() {
+                        if let Some(area) = area.0.get() {
                             view! {
-                                <AreaForm area = signal(Some(area)).0 category=category.clone() is_open=open_form.1 />
+                                <AreaForm area=area category=category.clone() on_close=move |is_open| {
+                                    logging::log!("Updated AreaForm closed: {}", is_open);
+                                    open_form.1.set(is_open);
+                                } />
                             }.into_any()
                         }else{
                             view! {
-                                <AreaForm area = signal(None).0 category=category.clone() is_open=open_form.1 />
+                                <AreaForm category=category.clone() on_close=move |is_open| {
+                                    open_form.1.set(is_open);
+                                }   />
                             }.into_any()
                         }
                     } else {

@@ -94,7 +94,7 @@ fn CategorySection(
 
     // Create a separate area_to_edit signal for this category
     let local_area_to_edit = RwSignal::new(None::<ProjectArea>);
-
+    let open_form = signal(false);
     view! {
         <div class="border-b border-x w-full first:border-t first:rounded-t-[6px] p-2  hover:bg-gray-100 last:rounded-b-[6px]">
             <div class="text-sm mb-1 cursor-pointer transition-all flex justify-between"
@@ -132,10 +132,14 @@ fn CategorySection(
                 when=move || is_expanded.get()
                 fallback=|| view! { <div/> }
             >
-                <div class="flex gap-1">
+                <div class="flex gap-1 relative">
                     {
                         Select(
-                            move || category_areas.get().iter().map(|area| area.title.clone()).collect::<Vec<String>>(),
+                            move || {
+                                let mut areas = category_areas.get();
+                                areas.sort_by(|a, b| a.order.unwrap_or(0).cmp(&b.order.unwrap_or(0)));
+                                areas.iter().map(|area| format!("{} - {}", area.order.unwrap_or(0), area.title.clone())).collect::<Vec<String>>()
+                            },
                             project_areas,
                             {
                                 let catalog_context = catalog_context.clone();
@@ -170,9 +174,13 @@ fn CategorySection(
                     }
                     {
                         view!{
-                            <div class="flex-col pt-[11px]" >
+                            <div class="flex-col pt-[11px] absolute right-4" >
                             <For
-                                each=move || category_areas.get()
+                                each=move || {
+                                    let mut areas = category_areas.get();
+                                    areas.sort_by(|a, b| a.order.unwrap_or(0).cmp(&b.order.unwrap_or(0)));
+                                    areas
+                                }
                                 key=|area| area.id
                                 children=move |area| {
                                     let area_for_edit = area.clone();
@@ -182,6 +190,7 @@ fn CategorySection(
                                             size=ButtonSize::Small
                                             on_click=move |_| {
                                                 local_area_to_edit.set(Some(area_for_edit.clone()));
+                                                open_form.1.set(true);
                                             }>
                                                 {"✏️"}
                                             </SecondaryButton>
@@ -197,18 +206,16 @@ fn CategorySection(
                     let category_for_editor = category.clone();
                     move || {
                         let area_to_pass = local_area_to_edit.get();
-                        match area_to_pass {
-                            Some(area) => view! {
+                        logging::log!("Area to edit: {:?}", area_to_pass);
+                         view! {
                                 <div class="mt-2">
-                                    <AreaEditor area=area category=category_for_editor.clone() />
-                                </div>
-                            },
-                            None => view! {
-                                <div class="mt-2">
-                                    <AreaEditor category=category_for_editor.clone() />
+                                    <AreaEditor 
+                                        area=move || local_area_to_edit.get() 
+                                        category=category_for_editor.clone() 
+                                        open_form=open_form.clone()
+                                    />
                                 </div>
                             }
-                        }
                     }
                 }
             </Show>

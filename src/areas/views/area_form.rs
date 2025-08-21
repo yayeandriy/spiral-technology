@@ -22,9 +22,11 @@ impl DataState<ProjectArea> {
         if let Some(project) = &self.init_data {
             self.data.insert("title".to_string(), signal(project.title.clone()));
             self.data.insert("desc".to_string(), signal(project.desc.clone().unwrap_or_default()));
+            self.data.insert("order".to_string(), signal(project.order.map_or(String::new(), |o| o.to_string())));
         } else {
             self.data.insert("title".to_string(), signal(String::new()));
             self.data.insert("desc".to_string(), signal(String::new()));
+            self.data.insert("order".to_string(), signal(String::new()));
         }
     }
 
@@ -32,6 +34,9 @@ impl DataState<ProjectArea> {
         ProjectArea {
             title: self.data.get("title").map(|(r, _)| r.get()).unwrap_or_default(),
             desc: Some(self.data.get("desc").map(|(r, _)| r.get()).unwrap_or_default()),
+            order: self.data.get("order")
+                .map(|(r, _)| r.get())
+                .and_then(|s: String| s.parse::<i32>().ok()),
             id: self.id as i64,
             created_at: Some(self.created_at),
             category: self.init_data.as_ref().map_or("no category".to_string(), |p| p.category.clone()),
@@ -43,6 +48,7 @@ impl DataState<ProjectArea> {
             match field_name {
                 "title" => project.title.clone(),
                 "desc" => project.desc.clone().unwrap_or_default(),
+                "order" => project.order.map_or(String::new(), |o| o.to_string()),
                 _ => String::new(),
             }
         } else {
@@ -88,6 +94,7 @@ impl DataState<ProjectArea> {
             desc: None,
             created_at: Some(String::new()),
             category,
+            order: None,
         };
         Self {
             data: HashMap::new(),
@@ -98,14 +105,6 @@ impl DataState<ProjectArea> {
         }
     }
 
-    pub fn reset(&mut self) {
-        self.data.clear();
-        self.is_modified.1.set(vec![]);
-        self.id = -1;
-        self.created_at = String::new();
-        self.init_data = None;
-    }
-
 }
 
 
@@ -113,67 +112,65 @@ impl DataState<ProjectArea> {
 
 #[component]
 pub fn AreaForm(
-    area: ReadSignal<Option<ProjectArea>>,
+    #[prop(optional)]
+    area: Option<ProjectArea>,
     category: String,
-    is_open: WriteSignal<bool>,
+    // is_open: WriteSignal<bool>,
+    on_close: impl FnMut(bool) + Clone + Send + Copy +'static
 ) -> impl IntoView {
+    let catalog_context = use_catalog();
     let areas_context = use_areas();
     let areas_context_clone = areas_context.clone();
 
     let area_clone = area.clone();
-    let area_clone_2 = area.clone();
 
-    let mut area_state = move || if let Some(area) = area.get() {
+    let mut area_state = if let Some(area) = area {
         DataState::<ProjectArea>::new(Some(area))
     } else {
         DataState::<ProjectArea>::from_category(category)
     };
-   
-    let area_state_clone = area_state.clone();
-    let area_state_clone_2 = area_state.clone();
-    let area_state_clone_3 = area_state.clone();
-    let area_state_clone_4 = area_state.clone();
     
-    area_state().init_fields();
-    area_state_clone_2().listen_for_changes();
     
+    area_state.init_fields();
+    area_state.listen_for_changes();
 
+    let area_state_clone = Arc::new(area_state.clone());
+    let area_state_clone_2 = Arc::new(area_state.clone());
+    let area_state_clone_3 = Arc::new(area_state.clone());
 
-    let handle_reset_state = {
-        let mut area_state_clone = area_state_clone_4.clone();
-        move || {
-            area_state_clone().reset();
-            logging::log!("State is reset");            
-        }
-    };
-
-    let handle_create_area = {
-        let areas_context = areas_context_clone.clone();
-        let area_state_clone = area_state_clone_3.clone();
-        move || {
-            logging::log!("Saving project...");
-            let areas_context = areas_context.clone();
-            let area_state = area_state_clone.clone();
-            spawn_local(async move {
-                    let updated_area = <DataState<ProjectArea> as Clone>::clone(&area_state()).into_data();
-                    areas_context.create_area(updated_area).await;
-            });
-        }
-    };
    
-    let handle_update_area = {
-        let areas_context = areas_context_clone.clone();
-        let area_state_clone = area_state_clone_3.clone();
-        move || {
-            logging::log!("Saving project...");
-            let areas_context = areas_context.clone();
-            let area_state = area_state_clone.clone();
-            spawn_local(async move {
-                    let updated_area = <DataState<ProjectArea> as Clone>::clone(&area_state()).into_data();
-                    areas_context.update_area(updated_area).await;
-            });
-        }
-    };
+let handle_create_area = {
+    let areas_context = areas_context_clone.clone();
+    let area_state_clone = area_state_clone_3.clone();
+    move || {
+        logging::log!("Saving project...");
+        let areas_context = areas_context.clone();
+        let area_state = area_state_clone.clone();
+         let mut on_close = on_close;
+        spawn_local(async move {
+                let updated_area = <DataState<ProjectArea> as Clone>::clone(&area_state).into_data();
+                areas_context.create_area(updated_area).await;
+                 on_close(false);
+        });
+    }
+};
+let handle_update_area = {
+    let areas_context = areas_context_clone.clone();
+    let area_state_clone = area_state_clone_3.clone();
+    let mut on_close = on_close;
+    move || {
+        logging::log!("Saving project...");
+        let areas_context = areas_context.clone();
+        let area_state = area_state_clone.clone();
+        let mut on_close = on_close;
+        spawn_local(async move {
+                let updated_area = <DataState<ProjectArea> as Clone>::clone(&area_state).into_data();
+                logging::log!("Updating area: {:?}", updated_area);
+                areas_context.update_area(updated_area).await;
+                on_close(false);
+        });
+    }
+};
     let handle_delete_area = {
         let areas_context = areas_context_clone.clone();
         let area_state_clone = area_state_clone_3.clone();
@@ -181,51 +178,53 @@ pub fn AreaForm(
             logging::log!("Saving project...");
             let areas_context = areas_context.clone();
             let area_state = area_state_clone.clone();
+             let mut on_close = on_close;
             spawn_local(async move {
-                    let updated_area = <DataState<ProjectArea> as Clone>::clone(&area_state()).into_data();
+                    let updated_area = <DataState<ProjectArea> as Clone>::clone(&area_state).into_data();
                     
                     areas_context.delete_area(updated_area.id).await;
+                     on_close(false);
             });
-            is_open.set(false);
+            // is_open.set(false);
         }
     };
 
     let handle_create_area_clone = Arc::new(handle_create_area.clone());
     let handle_update_area_clone = Arc::new(handle_update_area.clone());
-    let handle_reset_state_clone = handle_reset_state.clone();
-
-    
-
+let mut on_close = on_close.clone();
     view! {
         <div class="">
             <div class="w-full flex flex-col space-y-4">
             {
-                move || if area_clone.get().is_some() {
-                    let area_state_clone = area_state_clone.clone(); 
-                    let area_state_clone_2 = area_state_clone.clone(); 
+                if area_clone.is_some() {
+                    let handle_update_area_clone = handle_update_area_clone.clone();
+                    
                     view! {
-                         <InputField
-                        data_state=area_state_clone().clone()
-                        data_handle=(*handle_update_area_clone).clone()
-                        field_name="title".to_string()
-                    />
+                        <InputField
+                            data_state=(*area_state_clone).clone()
+                            data_handle=(*handle_update_area_clone).clone()
+                            field_name="title".to_string()
+                        />
+                        <InputField
+                            data_state=(*area_state_clone).clone()
+                            data_handle=(*handle_update_area_clone).clone()
+                            field_name="order".to_string()
+                        />
                     <FormTextArea
-                        data_state=area_state_clone_2().clone()
+                        data_state=(*area_state_clone).clone()
                         data_handle=(*handle_update_area_clone).clone()
                         field_name="desc".to_string()
                     />             
                     }.into_any()
                 } else {
-                    let area_state_clone = area_state_clone.clone(); 
-                    let area_state_clone_2 = area_state_clone.clone(); 
                     view! {
                         <InputField
-                        data_state=area_state_clone().clone()
+                        data_state=(*area_state_clone).clone()
                         data_handle=(*handle_create_area_clone).clone()
                         field_name="title".to_string()
                     />
                     <FormTextArea
-                        data_state=area_state_clone_2().clone()
+                        data_state=(*area_state_clone).clone()
                         data_handle=(*handle_create_area_clone).clone()
                         field_name="desc".to_string()
                     />             
@@ -236,15 +235,15 @@ pub fn AreaForm(
                 </div>
                 <div class="flex justify-between mt-1">
                     {
-                        move || if let Some(area) = area_clone_2.get() {
+                        if let Some(area) = area_clone {
                             if area.id > 0 {
-                                let handle_delete_area = handle_delete_area.clone();
                                 view!{
                                      <DangerButton
                                         size=ButtonSize::Small
                                         on_click=move |_| {
                                             logging::log!("Canceling area edit...");
-                                            handle_delete_area();                                                                                        
+                                            handle_delete_area();                                                                                    
+
                                         }
                                         >"🗑️"</DangerButton>
                                 }.into_any( )
@@ -259,14 +258,9 @@ pub fn AreaForm(
                     
                     <CancelButton 
                     size=ButtonSize::Small
-                    on_click={
-                        let handle_reset_state_clone = handle_reset_state_clone.clone();
-                        move |_| {
-                            let handle_reset_state_clone = handle_reset_state_clone.clone();
-                            logging::log!("Canceling area edit...");
-                            handle_reset_state_clone();
-                            is_open.set(false);
-                        }
+                    on_click=move |_| {
+                        logging::log!("Canceling area edit...");
+                        on_close(false);
                     }
                     >"╳"</CancelButton>
                     

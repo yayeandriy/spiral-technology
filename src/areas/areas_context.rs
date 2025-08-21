@@ -140,7 +140,8 @@ impl AreaContext {
         let updated_area = serde_json::json!({
             "title": area.title,
             "category": area.category,
-            "desc": area.desc
+            "desc": area.desc,
+            "order": area.order
         });
         
         match supabase_patch::<ProjectArea, serde_json::Value>(&format!("/rest/v1/areas?id=eq.{}", area.id), &updated_area).await {

@@ -19,7 +19,7 @@ pub fn InputField<T>(
                     <div class="p-1 rounded-[4px] flex gap-x-1 border border-gray-300">
                                 <input
                                     bind:value=*value
-                                    placeholder="Enter project title"
+                                    placeholder=format!("Enter {}", field_name)
                                     type="text" class="p-1 border-none w-full"  />
                                     {
                                         move || {

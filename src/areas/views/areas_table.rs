@@ -87,7 +87,10 @@ pub fn AreasTable() -> impl IntoView {
         view!{
             <div class="flex flex-col w-full gap-2 mt-3">
                 {
-                    projects().iter().enumerate().map(|(project_index, project)| {
+                    let mut projects_vec = projects();
+                    projects_vec.sort_by(|a, b| a.title.cmp(&b.title));
+
+                    projects_vec.iter().enumerate().map(|(project_index, project)| {
                         let project_clone = project.clone();
                         let areas_ids = catalog_context.get_project_areas_ids(project_clone.id as i64);
                         let is_project_hovered = hovered_project_id().map_or(false, |id| id == project_clone.id.to_string());
@@ -120,14 +123,17 @@ pub fn AreasTable() -> impl IntoView {
         </div>
         <div class="flex w-full justify-between sticky top-0 bg-white z-10">
             {
-                move || areas().into_iter().map(|area| {
+                move ||{ 
+                    let mut areas = areas();
+                    areas.sort_by(|a, b| a.order.unwrap_or(0).cmp(&b.order.unwrap_or(0)));
+                    areas.into_iter().map(|area| {
                     view! {
                         <div class="w-full text-center">
                             <div class="">{area.title}</div>
                             // <div class="text-sm text-gray-500">{area.desc.clone().unwrap_or_default()}</div>
                         </div>
                     }
-                }).collect::<Vec<_>>()
+                }).collect::<Vec<_>>()}
             }
         </div>
         <div>
