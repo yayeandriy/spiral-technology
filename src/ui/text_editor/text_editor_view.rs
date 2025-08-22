@@ -1,6 +1,6 @@
 use leptos::prelude::*;
 
-use crate::{ shared::data_state_model::{DataState, DataHandler}, ui::text_editor::{editor_text_area::EditorTextArea, toolbar::Toolbar}};
+use crate::{ shared::data_state_model::{DataState, DataHandler, MarkdownHandler}, ui::text_editor::{editor_text_area::EditorTextArea, toolbar::Toolbar}};
 
 #[component]
 pub fn TextEditorView<T, P>(
@@ -10,7 +10,7 @@ pub fn TextEditorView<T, P>(
 where
     T: Clone + Send + Sync + 'static,
     P: Clone + Send + Sync + 'static,
-    DataState<T, P>: DataHandler,
+    DataState<T, P>: DataHandler + MarkdownHandler,
 {
     let value = data_state.data.get(&field_name).cloned();
     view! {

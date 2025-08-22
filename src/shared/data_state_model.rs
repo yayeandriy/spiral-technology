@@ -2,6 +2,9 @@ use std::{collections::HashMap, sync::Arc};
 
 use leptos::prelude::{signal, ReadSignal, WriteSignal};
 
+// Re-export the MarkdownHandler trait for convenience
+pub use crate::ui::text_editor::markdown_trait::MarkdownHandler;
+
 
 #[derive(Clone)]
 pub struct DataState<T = (), P = ()> 

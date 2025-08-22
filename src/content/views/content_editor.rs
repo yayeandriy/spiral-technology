@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use leptos::{prelude::*, reactive::spawn_local};
 
-use crate::{content::{content_context::{use_project_content, ProjectContentContext}, model::ProjectContent}, shared::data_state_model::{DataState, DataHandler}, ui::text_editor::text_editor_view::TextEditorView};
+use crate::{content::{content_context::{use_project_content, ProjectContentContext}, model::ProjectContent}, shared::data_state_model::{DataState, DataHandler, MarkdownHandler}, ui::text_editor::text_editor_view::TextEditorView};
 
 
 impl DataHandler for DataState<ProjectContent,ProjectContentContext> {
@@ -21,6 +21,24 @@ impl DataHandler for DataState<ProjectContent,ProjectContentContext> {
         } else {
             return;
         }
+    }
+}
+
+impl MarkdownHandler for DataState<ProjectContent,ProjectContentContext> {
+    fn parse_markdown(&self, input: &str) -> String {
+        // Basic markdown parsing - can be enhanced with a proper markdown parser
+        input.to_string()
+    }
+
+    fn to_markdown(&self, input: &str) -> String {
+        // Convert to markdown format
+        input.to_string()
+    }
+
+    fn render_markdown(&self, input: &str) -> String {
+        // Render markdown to HTML - can be enhanced with a proper markdown renderer
+        // For now, just return the input
+        input.to_string()
     }
 }
 
