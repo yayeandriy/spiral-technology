@@ -46,7 +46,7 @@ pub fn ProjectAreasEditor(
             let ids = project_areas_ids.get();
             let areas = all_areas.get();
             areas.iter().filter(|area| ids.contains(&area.id))            
-            .map(|area| format!("{} - {}", area.order.unwrap_or(0), area.title.clone())).collect::<Vec<_>>()
+            .map(|area| area.title.clone()).collect::<Vec<_>>()
         }
     });
 
@@ -124,7 +124,7 @@ fn CategorySection(
                             let areas = category_areas.get();
                             let project_areas_current = project_areas.get();
                             areas.iter().filter(|area| project_areas_current.iter()
-                            .any(|pa| &format!("{} - {}", area.order.unwrap_or(0), area.title.clone()) == pa))
+                            .any(|pa| area.title == *pa))
                              .map(|area| view!{ <div class="uppercase tracking-wider text-[10px] max-w-24 truncate px-2 text-white bg-black rounded-[6px]" >{area.title.clone()}</div> }).collect_view()
                         }
                     }
@@ -140,7 +140,7 @@ fn CategorySection(
                             move || {
                                 let mut areas = category_areas.get();
                                 areas.sort_by(|a, b| a.order.unwrap_or(0).cmp(&b.order.unwrap_or(0)));
-                                areas.iter().map(|area| format!("{} - {}", area.order.unwrap_or(0), area.title.clone())).collect::<Vec<String>>()
+                                areas.iter().map(|area| area.title.clone()).collect::<Vec<String>>()
                             },
                             {
                                 project_areas
@@ -150,6 +150,7 @@ fn CategorySection(
                                 let all_areas = all_areas.clone();
                                 move |selected: String| {
                                     logging::log!("Selected area title: {}", selected);
+                                    // let selected = selected.split(" - ").nth(1).unwrap_or(&selected).to_string();
                                     let current_areas = project_areas.get();
                                     if current_areas.contains(&selected) {
                                         if let Some(area) = all_areas.get().iter().find(|area| area.title == selected) {
