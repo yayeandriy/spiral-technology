@@ -19,19 +19,9 @@ where
     let markdown_editor = use_context::<MarkdownEditor>().expect("MarkdownEditor context not found");
     let show_preview = RwSignal::new(false);
     
-    // Clone for closures
-    let data_state_for_preview = data_state.clone();
-    let field_name_for_preview = field_name.clone();
-    let data_state_for_save = data_state.clone();
-    let field_name_for_save = field_name.clone();
-    
     // Get the current text content for preview
     let preview_text = move || {
-        if let Some(value) = data_state_for_preview.data.get(&field_name_for_preview) {
-            value.0.get()
-        } else {
-            String::new()
-        }
+        data_state.data.get(&field_name).unwrap_or_default().0.get()
     };
     
     view! {
@@ -133,15 +123,15 @@ where
                 </div>
                 
                 {
-                    let data_state_save = data_state_for_save.clone();
-                    let field_name_save = field_name_for_save.clone();
+                    let data_state = data_state.clone();
+                    let field_name = field_name.clone();
                     move || {
-                        let data_state_save = data_state_save.clone();
-                        if data_state_save.is_modified.0.get().contains(&field_name_save) {
+                        let data_state = data_state.clone();
+                        if data_state.is_modified.0.get().contains(&field_name) {
                             view! { 
                                 <div class="">
                                     <PrimaryButton
-                                        on_click=move |_| data_state_save.update_or_create()
+                                        on_click=move |_| data_state.update_or_create()
                                     >
                                         "Save"
                                     </PrimaryButton>
