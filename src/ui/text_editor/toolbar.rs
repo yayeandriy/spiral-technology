@@ -123,6 +123,18 @@ where
                     </button>
                     
                     <button 
+                        class="flex items-center gap-1 px-2 py-1 text-sm border rounded hover:bg-gray-100 bg-yellow-50"
+                        on:click={
+                            let undo = markdown_editor.undo.clone();
+                            move |_| {
+                                undo();
+                            }
+                        }
+                    >
+                        "↶ Undo"
+                    </button>
+                    
+                    <button 
                         class="flex items-center gap-1 px-2 py-1 text-sm border rounded hover:bg-gray-100 bg-blue-50"
                         on:click=move |_| {
                             show_preview.set(!show_preview.get());

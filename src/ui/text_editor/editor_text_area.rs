@@ -59,6 +59,7 @@ pub struct MarkdownEditor {
     pub insert_link: Arc<dyn Fn() + Send + Sync>,
     pub apply_quote: Arc<dyn Fn() + Send + Sync>,
     pub insert_image: Arc<dyn Fn() + Send + Sync>,
+    pub undo: Arc<dyn Fn() + Send + Sync>,
 }
 
 #[component]
@@ -72,6 +73,46 @@ pub fn EditorTextArea(
     let cursor_position = RwSignal::new(0usize);
     let selection_start = RwSignal::new(0usize);
     let selection_end = RwSignal::new(0usize);
+    
+    // Undo history - store up to 10 previous states
+    let history = RwSignal::new(Vec::<(String, usize)>::new()); // (text, cursor_position)
+    let history_index = RwSignal::new(0usize);
+    
+    // Add current state to history
+    let add_to_history = {
+        let value = value.clone();
+        move |cursor_pos: usize| {
+            let current_text = value.0.get();
+            let mut hist = history.get();
+            
+            // Remove any future history if we're not at the end
+            let current_index = history_index.get();
+            if current_index < hist.len() {
+                hist.truncate(current_index);
+            }
+            
+            // Add new state
+            hist.push((current_text, cursor_pos));
+            
+            // Keep only last 10 states
+            if hist.len() > 10 {
+                hist.remove(0);
+            } else {
+                history_index.set(history_index.get() + 1);
+            }
+            
+            history.set(hist);
+        }
+    };
+    
+    // Initialize history with current state
+    {
+        let initial_text = value.0.get();
+        let mut hist = Vec::new();
+        hist.push((initial_text, 0));
+        history.set(hist);
+        history_index.set(1);
+    }
     
     // Function to get current cursor position and selection
     let update_cursor_info = {
@@ -114,7 +155,9 @@ pub fn EditorTextArea(
             let value = value.clone();
             let update_cursor_info = update_cursor_info.clone();
             let set_selection = set_selection.clone();
+            let add_to_history = add_to_history.clone();
             Arc::new(move || {
+                add_to_history(selection_start.get());
                 update_cursor_info();
                 let text = value.0.get();
                 let start = selection_start.get();
@@ -138,7 +181,9 @@ pub fn EditorTextArea(
             let value = value.clone();
             let update_cursor_info = update_cursor_info.clone();
             let set_selection = set_selection.clone();
+            let add_to_history = add_to_history.clone();
             Arc::new(move || {
+                add_to_history(selection_start.get());
                 update_cursor_info();
                 let text = value.0.get();
                 let start = selection_start.get();
@@ -162,7 +207,9 @@ pub fn EditorTextArea(
             let value = value.clone();
             let update_cursor_info = update_cursor_info.clone();
             let set_cursor_position = set_cursor_position.clone();
+            let add_to_history = add_to_history.clone();
             Arc::new(move || {
+                add_to_history(cursor_position.get());
                 update_cursor_info();
                 let text = value.0.get();
                 let cursor = cursor_position.get();
@@ -175,7 +222,9 @@ pub fn EditorTextArea(
             let value = value.clone();
             let update_cursor_info = update_cursor_info.clone();
             let set_cursor_position = set_cursor_position.clone();
+            let add_to_history = add_to_history.clone();
             Arc::new(move || {
+                add_to_history(cursor_position.get());
                 update_cursor_info();
                 let text = value.0.get();
                 let cursor = cursor_position.get();
@@ -188,7 +237,9 @@ pub fn EditorTextArea(
             let value = value.clone();
             let update_cursor_info = update_cursor_info.clone();
             let set_selection = set_selection.clone();
+            let add_to_history = add_to_history.clone();
             Arc::new(move || {
+                add_to_history(selection_start.get());
                 update_cursor_info();
                 let text = value.0.get();
                 let start = selection_start.get();
@@ -216,7 +267,9 @@ pub fn EditorTextArea(
             let value = value.clone();
             let update_cursor_info = update_cursor_info.clone();
             let set_cursor_position = set_cursor_position.clone();
+            let add_to_history = add_to_history.clone();
             Arc::new(move || {
+                add_to_history(cursor_position.get());
                 update_cursor_info();
                 let text = value.0.get();
                 let cursor = cursor_position.get();
@@ -229,7 +282,9 @@ pub fn EditorTextArea(
             let value = value.clone();
             let update_cursor_info = update_cursor_info.clone();
             let set_selection = set_selection.clone();
+            let add_to_history = add_to_history.clone();
             Arc::new(move || {
+                add_to_history(selection_start.get());
                 update_cursor_info();
                 let text = value.0.get();
                 let start = selection_start.get();
@@ -237,6 +292,24 @@ pub fn EditorTextArea(
                 value.1.set(new_text);
                 // Select "alt text"
                 set_selection(start + 2, start + 10);
+            })
+        },
+        undo: {
+            let value = value.clone();
+            let set_cursor_position = set_cursor_position.clone();
+            Arc::new(move || {
+                let current_index = history_index.get();
+                if current_index > 1 {
+                    // Move back in history
+                    let new_index = current_index - 1;
+                    history_index.set(new_index);
+                    
+                    let hist = history.get();
+                    if let Some((text, cursor_pos)) = hist.get(new_index - 1) {
+                        value.1.set(text.clone());
+                        set_cursor_position(*cursor_pos);
+                    }
+                }
             })
         },
     };
@@ -253,6 +326,45 @@ pub fn EditorTextArea(
                     prop:value=move || value.0.get()
                     on:input:target=move |ev| {
                         value.1.set(ev.target().value());
+                    }
+                    on:keydown={
+                        let add_to_history = add_to_history.clone();
+                        let update_cursor_info = update_cursor_info.clone();
+                        let undo_fn = {
+                            let value = value.clone();
+                            let set_cursor_position = set_cursor_position.clone();
+                            move || {
+                                let current_index = history_index.get();
+                                if current_index > 1 {
+                                    // Move back in history
+                                    let new_index = current_index - 1;
+                                    history_index.set(new_index);
+                                    
+                                    let hist = history.get();
+                                    if let Some((text, cursor_pos)) = hist.get(new_index - 1) {
+                                        value.1.set(text.clone());
+                                        set_cursor_position(*cursor_pos);
+                                    }
+                                }
+                            }
+                        };
+                        move |ev: web_sys::KeyboardEvent| {
+                            let key = ev.key();
+                            
+                            // Handle Ctrl+Z for undo
+                            if ev.ctrl_key() && key == "z" {
+                                ev.prevent_default();
+                                undo_fn();
+                                return;
+                            }
+                            
+                            // Save state before significant changes
+                            if key == "Enter" || key == "Backspace" || key == "Delete" || 
+                               (ev.ctrl_key() && (key == "v" || key == "x")) {
+                                update_cursor_info();
+                                add_to_history(cursor_position.get());
+                            }
+                        }
                     }
                     on:click=move |_| update_cursor_info()
                     on:keyup=move |_| update_cursor_info()
