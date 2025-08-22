@@ -1,7 +1,8 @@
 use leptos::prelude::*;
 use web_sys::HtmlTextAreaElement;
 use wasm_bindgen::JsCast;
-use std::sync::Arc;
+
+use crate::shared::data_state_model::{DataState, MarkdownHandler};
 
 // Utility functions for text manipulation
 pub fn insert_text_at_cursor(text: &str, insert: &str, cursor_pos: usize) -> (String, usize) {
@@ -49,22 +50,15 @@ pub fn insert_at_line_start(text: &str, cursor_pos: usize, prefix: &str) -> (Str
     (result, new_cursor_pos)
 }
 
-// Context for exposing markdown editing functions to parent components
-#[derive(Clone)]
-pub struct MarkdownEditor {
-    pub apply_bold: Arc<dyn Fn() + Send + Sync>,
-    pub apply_italic: Arc<dyn Fn() + Send + Sync>,
-    pub apply_h1: Arc<dyn Fn() + Send + Sync>,
-    pub apply_h2: Arc<dyn Fn() + Send + Sync>,
-    pub insert_link: Arc<dyn Fn() + Send + Sync>,
-    pub apply_quote: Arc<dyn Fn() + Send + Sync>,
-    pub insert_image: Arc<dyn Fn() + Send + Sync>,
-}
+
+
+
+
+
 
 #[component]
 pub fn EditorTextArea(
-    value: (ReadSignal<String>, WriteSignal<String>),
-    children: Children
+    value: (ReadSignal<String>, WriteSignal<String>)
 ) -> impl IntoView {
     let textarea_ref = NodeRef::<leptos::html::Textarea>::new();
     
@@ -108,13 +102,13 @@ pub fn EditorTextArea(
         }
     };
     
-    // Create markdown editing functions and provide them as context
-    let markdown_functions = MarkdownEditor {
+    // Expose markdown editing functions
+    provide_context(MarkdownEditor {
         apply_bold: {
             let value = value.clone();
             let update_cursor_info = update_cursor_info.clone();
             let set_selection = set_selection.clone();
-            Arc::new(move || {
+            move || {
                 update_cursor_info();
                 let text = value.0.get();
                 let start = selection_start.get();
@@ -122,7 +116,7 @@ pub fn EditorTextArea(
                 
                 if start == end {
                     // No selection, insert bold placeholder
-                    let (new_text, _) = insert_text_at_cursor(&text, "**bold text**", start);
+                    let (new_text, new_cursor) = insert_text_at_cursor(&text, "**bold text**", start);
                     value.1.set(new_text);
                     // Set selection to select "bold text"
                     set_selection(start + 2, start + 11);
@@ -132,13 +126,13 @@ pub fn EditorTextArea(
                     value.1.set(new_text);
                     set_selection(new_start, new_end);
                 }
-            })
+            }
         },
         apply_italic: {
             let value = value.clone();
             let update_cursor_info = update_cursor_info.clone();
             let set_selection = set_selection.clone();
-            Arc::new(move || {
+            move || {
                 update_cursor_info();
                 let text = value.0.get();
                 let start = selection_start.get();
@@ -146,7 +140,7 @@ pub fn EditorTextArea(
                 
                 if start == end {
                     // No selection, insert italic placeholder
-                    let (new_text, _) = insert_text_at_cursor(&text, "*italic text*", start);
+                    let (new_text, new_cursor) = insert_text_at_cursor(&text, "*italic text*", start);
                     value.1.set(new_text);
                     // Set selection to select "italic text"
                     set_selection(start + 1, start + 12);
@@ -156,39 +150,39 @@ pub fn EditorTextArea(
                     value.1.set(new_text);
                     set_selection(new_start, new_end);
                 }
-            })
+            }
         },
         apply_h1: {
             let value = value.clone();
             let update_cursor_info = update_cursor_info.clone();
             let set_cursor_position = set_cursor_position.clone();
-            Arc::new(move || {
+            move || {
                 update_cursor_info();
                 let text = value.0.get();
                 let cursor = cursor_position.get();
                 let (new_text, new_cursor) = insert_at_line_start(&text, cursor, "# ");
                 value.1.set(new_text);
                 set_cursor_position(new_cursor);
-            })
+            }
         },
         apply_h2: {
             let value = value.clone();
             let update_cursor_info = update_cursor_info.clone();
             let set_cursor_position = set_cursor_position.clone();
-            Arc::new(move || {
+            move || {
                 update_cursor_info();
                 let text = value.0.get();
                 let cursor = cursor_position.get();
                 let (new_text, new_cursor) = insert_at_line_start(&text, cursor, "## ");
                 value.1.set(new_text);
                 set_cursor_position(new_cursor);
-            })
+            }
         },
         insert_link: {
             let value = value.clone();
             let update_cursor_info = update_cursor_info.clone();
             let set_selection = set_selection.clone();
-            Arc::new(move || {
+            move || {
                 update_cursor_info();
                 let text = value.0.get();
                 let start = selection_start.get();
@@ -210,26 +204,26 @@ pub fn EditorTextArea(
                     // Select the URL part
                     set_selection(start + selected_text.len() + 3, start + selected_text.len() + 22);
                 }
-            })
+            }
         },
         apply_quote: {
             let value = value.clone();
             let update_cursor_info = update_cursor_info.clone();
             let set_cursor_position = set_cursor_position.clone();
-            Arc::new(move || {
+            move || {
                 update_cursor_info();
                 let text = value.0.get();
                 let cursor = cursor_position.get();
                 let (new_text, new_cursor) = insert_at_line_start(&text, cursor, "> ");
                 value.1.set(new_text);
                 set_cursor_position(new_cursor);
-            })
+            }
         },
         insert_image: {
             let value = value.clone();
             let update_cursor_info = update_cursor_info.clone();
             let set_selection = set_selection.clone();
-            Arc::new(move || {
+            move || {
                 update_cursor_info();
                 let text = value.0.get();
                 let start = selection_start.get();
@@ -237,30 +231,38 @@ pub fn EditorTextArea(
                 value.1.set(new_text);
                 // Select "alt text"
                 set_selection(start + 2, start + 10);
-            })
+            }
         },
-    };
-    
-    provide_context(markdown_functions);
+    });
     
     view! {
-        <div class="w-full flex flex-col h-screen">
-            {children()}
-            <div class="p-1 rounded-[4px] w-full flex flex-1 border border-gray-300">
-                <textarea
-                    class="p-1 border-none w-full h-full resize-none"
-                    node_ref=textarea_ref
-                    prop:value=move || value.0.get()
-                    on:input:target=move |ev| {
-                        value.1.set(ev.target().value());
-                    }
-                    on:click=move |_| update_cursor_info()
-                    on:keyup=move |_| update_cursor_info()
-                    on:select=move |_| update_cursor_info()
-                >
-                    {value.0.get()}
-                </textarea>
-            </div>
+        <div class="p-1 rounded-[4px] w-full flex h-full border border-gray-300">
+            <textarea
+                class="p-1 border-none w-full resize-none"
+                node_ref=textarea_ref
+                prop:value=move || value.0.get()
+                on:input:target=move |ev| {
+                    value.1.set(ev.target().value());
+                }
+                on:click=move |_| update_cursor_info()
+                on:keyup=move |_| update_cursor_info()
+                on:select=move |_| update_cursor_info()
+            >
+                {value.0.get()}
+            </textarea>
         </div>
     }
 }
+
+// Context for exposing markdown editing functions to parent components
+#[derive(Clone)]
+pub struct MarkdownEditor {
+    pub apply_bold: Box<dyn Fn() + Send + Sync>,
+    pub apply_italic: Box<dyn Fn() + Send + Sync>,
+    pub apply_h1: Box<dyn Fn() + Send + Sync>,
+    pub apply_h2: Box<dyn Fn() + Send + Sync>,
+    pub insert_link: Box<dyn Fn() + Send + Sync>,
+    pub apply_quote: Box<dyn Fn() + Send + Sync>,
+    pub insert_image: Box<dyn Fn() + Send + Sync>,
+}
+

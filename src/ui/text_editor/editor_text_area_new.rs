@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use web_sys::HtmlTextAreaElement;
 use wasm_bindgen::JsCast;
-use std::sync::Arc;
+use std::rc::Rc;
 
 // Utility functions for text manipulation
 pub fn insert_text_at_cursor(text: &str, insert: &str, cursor_pos: usize) -> (String, usize) {
@@ -52,19 +52,18 @@ pub fn insert_at_line_start(text: &str, cursor_pos: usize, prefix: &str) -> (Str
 // Context for exposing markdown editing functions to parent components
 #[derive(Clone)]
 pub struct MarkdownEditor {
-    pub apply_bold: Arc<dyn Fn() + Send + Sync>,
-    pub apply_italic: Arc<dyn Fn() + Send + Sync>,
-    pub apply_h1: Arc<dyn Fn() + Send + Sync>,
-    pub apply_h2: Arc<dyn Fn() + Send + Sync>,
-    pub insert_link: Arc<dyn Fn() + Send + Sync>,
-    pub apply_quote: Arc<dyn Fn() + Send + Sync>,
-    pub insert_image: Arc<dyn Fn() + Send + Sync>,
+    pub apply_bold: Rc<dyn Fn()>,
+    pub apply_italic: Rc<dyn Fn()>,
+    pub apply_h1: Rc<dyn Fn()>,
+    pub apply_h2: Rc<dyn Fn()>,
+    pub insert_link: Rc<dyn Fn()>,
+    pub apply_quote: Rc<dyn Fn()>,
+    pub insert_image: Rc<dyn Fn()>,
 }
 
 #[component]
 pub fn EditorTextArea(
-    value: (ReadSignal<String>, WriteSignal<String>),
-    children: Children
+    value: (ReadSignal<String>, WriteSignal<String>)
 ) -> impl IntoView {
     let textarea_ref = NodeRef::<leptos::html::Textarea>::new();
     
@@ -114,7 +113,7 @@ pub fn EditorTextArea(
             let value = value.clone();
             let update_cursor_info = update_cursor_info.clone();
             let set_selection = set_selection.clone();
-            Arc::new(move || {
+            Rc::new(move || {
                 update_cursor_info();
                 let text = value.0.get();
                 let start = selection_start.get();
@@ -138,7 +137,7 @@ pub fn EditorTextArea(
             let value = value.clone();
             let update_cursor_info = update_cursor_info.clone();
             let set_selection = set_selection.clone();
-            Arc::new(move || {
+            Rc::new(move || {
                 update_cursor_info();
                 let text = value.0.get();
                 let start = selection_start.get();
@@ -162,7 +161,7 @@ pub fn EditorTextArea(
             let value = value.clone();
             let update_cursor_info = update_cursor_info.clone();
             let set_cursor_position = set_cursor_position.clone();
-            Arc::new(move || {
+            Rc::new(move || {
                 update_cursor_info();
                 let text = value.0.get();
                 let cursor = cursor_position.get();
@@ -175,7 +174,7 @@ pub fn EditorTextArea(
             let value = value.clone();
             let update_cursor_info = update_cursor_info.clone();
             let set_cursor_position = set_cursor_position.clone();
-            Arc::new(move || {
+            Rc::new(move || {
                 update_cursor_info();
                 let text = value.0.get();
                 let cursor = cursor_position.get();
@@ -188,7 +187,7 @@ pub fn EditorTextArea(
             let value = value.clone();
             let update_cursor_info = update_cursor_info.clone();
             let set_selection = set_selection.clone();
-            Arc::new(move || {
+            Rc::new(move || {
                 update_cursor_info();
                 let text = value.0.get();
                 let start = selection_start.get();
@@ -216,7 +215,7 @@ pub fn EditorTextArea(
             let value = value.clone();
             let update_cursor_info = update_cursor_info.clone();
             let set_cursor_position = set_cursor_position.clone();
-            Arc::new(move || {
+            Rc::new(move || {
                 update_cursor_info();
                 let text = value.0.get();
                 let cursor = cursor_position.get();
@@ -229,7 +228,7 @@ pub fn EditorTextArea(
             let value = value.clone();
             let update_cursor_info = update_cursor_info.clone();
             let set_selection = set_selection.clone();
-            Arc::new(move || {
+            Rc::new(move || {
                 update_cursor_info();
                 let text = value.0.get();
                 let start = selection_start.get();
@@ -244,23 +243,20 @@ pub fn EditorTextArea(
     provide_context(markdown_functions);
     
     view! {
-        <div class="w-full flex flex-col h-screen">
-            {children()}
-            <div class="p-1 rounded-[4px] w-full flex flex-1 border border-gray-300">
-                <textarea
-                    class="p-1 border-none w-full h-full resize-none"
-                    node_ref=textarea_ref
-                    prop:value=move || value.0.get()
-                    on:input:target=move |ev| {
-                        value.1.set(ev.target().value());
-                    }
-                    on:click=move |_| update_cursor_info()
-                    on:keyup=move |_| update_cursor_info()
-                    on:select=move |_| update_cursor_info()
-                >
-                    {value.0.get()}
-                </textarea>
-            </div>
+        <div class="p-1 rounded-[4px] w-full flex h-full border border-gray-300">
+            <textarea
+                class="p-1 border-none w-full resize-none"
+                node_ref=textarea_ref
+                prop:value=move || value.0.get()
+                on:input:target=move |ev| {
+                    value.1.set(ev.target().value());
+                }
+                on:click=move |_| update_cursor_info()
+                on:keyup=move |_| update_cursor_info()
+                on:select=move |_| update_cursor_info()
+            >
+                {value.0.get()}
+            </textarea>
         </div>
     }
 }

@@ -1,6 +1,15 @@
 use leptos::prelude::*;
 
-use crate::{ shared::data_state_model::{DataState, DataHandler, MarkdownHandler}, ui::button::PrimaryButton};
+use crate::{ 
+    shared::data_state_model::{DataState, DataHandler}, 
+    ui::{button::PrimaryButton, text_editor::editor_text_area::MarkdownEditor}
+};
+
+
+
+
+
+
 
 #[component]
 pub fn Toolbar<T, P>(
@@ -10,75 +19,95 @@ pub fn Toolbar<T, P>(
 where
     T: Clone + Send + Sync + 'static,
     P: Clone + Send + Sync + 'static,
-    DataState<T, P>: DataHandler + MarkdownHandler,
+    DataState<T, P>: DataHandler,
 {
+    let markdown_editor = use_context::<MarkdownEditor>().expect("MarkdownEditor context not found");
     
     view! {
         <div class="w-full h-[40px]  bg-gray-100 justify-between border-b flex items-center rounded mb-1">
         <div class="flex gap-x-2 px-2">
-            <button 
-                class="px-2 py-1 text-sm bg-white border rounded hover:bg-gray-50"
+                        <button 
+                class="flex items-center gap-1 px-2 py-1 text-sm border rounded hover:bg-gray-100"
                 on:click={
-                    let data_state = data_state.clone();
-                    let field_name = field_name.clone();
+                    let apply_bold = markdown_editor.apply_bold.clone();
                     move |_| {
-                        // Get current text and make it bold
-                        if let Some((read_signal, write_signal)) = data_state.data.get(&field_name) {
-                            let current_text = read_signal.get();
-                            let bold_text = data_state.make_bold(&current_text);
-                            write_signal.set(bold_text);
-                        }
+                        apply_bold();
                     }
-                }>
-                "B"
+                }
+            >
+                "Bold"
             </button>
+            
             <button 
-                class="px-2 py-1 text-sm bg-white border rounded hover:bg-gray-50 italic"
+                class="flex items-center gap-1 px-2 py-1 text-sm border rounded hover:bg-gray-100"
                 on:click={
-                    let data_state = data_state.clone();
-                    let field_name = field_name.clone();
+                    let apply_italic = markdown_editor.apply_italic.clone();
                     move |_| {
-                        // Get current text and make it italic
-                        if let Some((read_signal, write_signal)) = data_state.data.get(&field_name) {
-                            let current_text = read_signal.get();
-                            let italic_text = data_state.make_italic(&current_text);
-                            write_signal.set(italic_text);
-                        }
+                        apply_italic();
                     }
-                }>
-                "I"
+                }
+            >
+                "Italic"
             </button>
+            
             <button 
-                class="px-2 py-1 text-sm bg-white border rounded hover:bg-gray-50"
+                class="flex items-center gap-1 px-2 py-1 text-sm border rounded hover:bg-gray-100"
                 on:click={
-                    let data_state = data_state.clone();
-                    let field_name = field_name.clone();
+                    let apply_h1 = markdown_editor.apply_h1.clone();
                     move |_| {
-                        // Get current text and make it H1
-                        if let Some((read_signal, write_signal)) = data_state.data.get(&field_name) {
-                            let current_text = read_signal.get();
-                            let h1_text = data_state.make_h1(&current_text);
-                            write_signal.set(h1_text);
-                        }
+                        apply_h1();
                     }
-                }>
+                }
+            >
                 "H1"
             </button>
+            
             <button 
-                class="px-2 py-1 text-sm bg-white border rounded hover:bg-gray-50"
+                class="flex items-center gap-1 px-2 py-1 text-sm border rounded hover:bg-gray-100"
                 on:click={
-                    let data_state = data_state.clone();
-                    let field_name = field_name.clone();
+                    let apply_h2 = markdown_editor.apply_h2.clone();
                     move |_| {
-                        // Get current text and make it H2
-                        if let Some((read_signal, write_signal)) = data_state.data.get(&field_name) {
-                            let current_text = read_signal.get();
-                            let h2_text = data_state.make_h2(&current_text);
-                            write_signal.set(h2_text);
-                        }
+                        apply_h2();
                     }
-                }>
+                }
+            >
                 "H2"
+            </button>
+            
+            <button 
+                class="flex items-center gap-1 px-2 py-1 text-sm border rounded hover:bg-gray-100"
+                on:click={
+                    let insert_link = markdown_editor.insert_link.clone();
+                    move |_| {
+                        insert_link();
+                    }
+                }
+            >
+                "Link"
+            </button>
+            
+            <button 
+                class="flex items-center gap-1 px-2 py-1 text-sm border rounded hover:bg-gray-100"
+                on:click={
+                    let apply_quote = markdown_editor.apply_quote.clone();
+                    move |_| {
+                        apply_quote();
+                    }
+                }
+            >
+                "Quote"
+            </button>
+            
+            <button 
+                class="flex items-center gap-1 px-2 py-1 text-sm border rounded hover:bg-gray-100"
+                on:click={
+                    let insert_image = markdown_editor.insert_image.clone();
+                    move |_| {
+                        insert_image();
+                    }
+                }
+            >
+                "Image"
             </button>
         </div>
          {
