@@ -110,8 +110,8 @@ pub fn AreasTable() -> impl IntoView {
         }
     };
     view! {
-        <div class="sticky top-0 pt-12 z-10  bg-white  " >
-        <div class="flex w-full grow justify-between pb-2 text-[15px]">
+        <div class="sticky top-0 pt-12 z-10  bg-white " >
+        <div class="flex w-full grow justify-between pb-2  text-[15px]">
             {
                 move || categories().into_iter().map(|cat| {
                     let cat_clone = cat.clone();
@@ -125,7 +125,7 @@ pub fn AreasTable() -> impl IntoView {
                             class="cursor-pointer transition-colors duration-200"
                             class:text-gray-300={!is_current}
                             >
-                            <div>{cat}</div>
+                            <div class="truncate">{cat}</div>
                         </div>
                     }
                 }).collect::<Vec<_>>()
@@ -138,9 +138,9 @@ pub fn AreasTable() -> impl IntoView {
                     areas.sort_by(|a, b| a.order.unwrap_or(0).cmp(&b.order.unwrap_or(0)));
                     areas.into_iter().map(|area| {
                     view! {
-                        <div class="w-full text-center relative">
+                        <div class="w-full text-center truncate relative group cursor-pointer">
                             <div inner_html=area.to_format() class=""/>
-                            <div class="absolute w-[1px] h-4 mt-2  bg-gray-300 left-1/2 transform -translate-x-1/2" />
+                            <div class="absolute w-[1px] h-4 mt-2 group-hover:h-[1000px] duration-[1s] ease-out group-hover:bg-black transition-all bg-gray-300 left-1/2 transform -translate-x-1/2" />
                             // <div class="text-sm text-gray-500">{area.desc.clone().unwrap_or_default()}</div>
                         </div>
                     }
