@@ -24,10 +24,10 @@ pub fn ProjectAreas(
     let is_visible = use_element_visibility(el);
 
    
-    let base_class = "w-full sticky top-0 bg-white flex items-start  pr-20 pl-4 pt-4 transition-all";
+    let base_class = "w-full sticky top-0 bg-white flex text-[12px] items-start space-x-2  px-4 pt-4 transition-all";
     let div_class = move || {
         let visible = is_visible.get();
-        if visible {
+        if true{ //visible {
             format!("{} min-h-[200px] justify-between ", base_class)
         } else {
             format!("{} text-[13px] min-h-[100px] justify-start overflow-x-auto", base_class)
@@ -35,9 +35,9 @@ pub fn ProjectAreas(
         
     };
 
-    let base_class_col = "flex  gap-1 ";
+    let base_class_col = "flex flex-col   gap-1 ";
     let col_class = move || {
-        if is_visible.get() {
+        if true {//is_visible.get() {
             format!("{} flex-col gap-1", base_class_col)
         } else {
             format!("{} gap-[5px] ", base_class_col)
@@ -55,12 +55,12 @@ pub fn ProjectAreas(
                     if !areas_in_category.is_empty() {
                         view! {
                             <div class=col_class>
-                                <div class="text-gray-400">{category}</div>
+                                <div class="text-gray-400 ">{category}</div>
                                 <div class=col_class>
                                     {
                                         areas_in_category.into_iter().map(|area| {
                                             view! {
-                                                <span class="bg-white pr-2">{area.title}</span>
+                                                <span class="bg-white pl-4"><div inner_html=area.to_format() class=""/></span>
                                             }
                                         }).collect::<Vec<_>>()
                                     }

@@ -14,19 +14,20 @@ pub fn ProjectHeader(
     let is_visible = use_element_visibility(el);
 
    
-    let base_class = "w-full sticky bg-white transition-all flex flex-col border-t pt-4 pb-4 px-4";
-    let div_class = move || {
-        let visible = is_visible.get();
-        if visible {
-            format!("{}  ", base_class)
-        } else {
-            format!("{} top-[60px] ", base_class)
-        }
+    let base_class = "w-full sticky top-0 bg-white transition-all flex flex-col border-t pt-4 pb-16 px-4";
+    // let base_class = "w-full sticky bg-white transition-all flex flex-col border-t pt-4 pb-4 px-4";
+    // let div_class = move || {
+    //     let visible = is_visible.get();
+    //     if visible {
+    //         format!("{}  ", base_class)
+    //     } else {
+    //         format!("{} top-[60px] ", base_class)
+    //     }
         
-    };
+    // };
     view! {
         <div node_ref=el />
-        <div class=div_class>
+        <div class=base_class>
             {
                 move || if let Some(proj) = project.get() {
                     view! {
