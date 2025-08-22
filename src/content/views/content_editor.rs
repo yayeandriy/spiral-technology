@@ -2,8 +2,27 @@ use std::{collections::HashMap, sync::Arc};
 
 use leptos::{prelude::*, reactive::spawn_local};
 
-use crate::{content::{content_context::{use_project_content, ProjectContentContext}, model::ProjectContent}, shared::data_state_model::DataState, ui::text_editor::{editor_text_area::EditorTextArea, text_editor_view::TextEditorView}};
+use crate::{content::{content_context::{use_project_content, ProjectContentContext}, model::ProjectContent}, shared::data_state_model::{DataState, DataHandler}, ui::text_editor::text_editor_view::TextEditorView};
 
+
+impl DataHandler for DataState<ProjectContent,ProjectContentContext> {
+    fn update_or_create(&self) {
+        let context = self.context.clone();
+        let state = Arc::new(self.clone());
+        if let Some(context) = context {
+            let update_content = Arc::try_unwrap(state)
+                        .unwrap_or_else(|arc| (*arc).clone())
+                        .into_data();
+             spawn_local(async move {
+                    let updated_content = update_content.clone();
+                    let text = updated_content.text.clone();
+                    context.create_or_update_project_content(text).await;
+            });
+        } else {
+            return;
+        }
+    }
+}
 
 impl DataState<ProjectContent,ProjectContentContext> {
     pub fn new() -> Self {
@@ -91,7 +110,7 @@ impl DataState<ProjectContent,ProjectContentContext> {
         });
     }
 
-    pub fn create_or_update(&self) {
+    pub fn update_or_create(&self) {
         let context = self.context.clone();
         let state = Arc::new(self.clone());
         if let Some(context) = context {
@@ -123,29 +142,10 @@ pub fn ContentEditor(
 
     let project_content_state_clone = Arc::new(content_state.clone()); 
 
-    let handle_save_content = {
-       let context = context.clone();
-        let project_content_state_clone = project_content_state_clone.clone();
-        move || {
-            let context = context.clone();
-            let project_content_state = project_content_state_clone.clone();
-            spawn_local(async move {
-                    let updated_content = Arc::try_unwrap(project_content_state)
-                        .unwrap_or_else(|arc| (*arc).clone())
-                        .into_data();
-                    let text = updated_content.text.clone();
-                    context.create_or_update_project_content(text).await;
-            });
-        }
-    };
-
-    let handle_save_project_clone = Arc::new(handle_save_content);
-
     view! {
         <div class="text-black h-[600px] ">
             <TextEditorView 
                 data_state=(*project_content_state_clone).clone()
-                data_handle=(*handle_save_project_clone).clone()
                 field_name="text".to_string()
             />
         </div>

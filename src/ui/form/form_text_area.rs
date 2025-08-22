@@ -7,7 +7,10 @@ pub fn FormTextArea<T>(
     data_state: DataState<T>,
     data_handle: impl FnMut() + 'static + Clone + Send, 
     field_name: String
-) -> impl IntoView {
+) -> impl IntoView 
+where
+    T: Clone + Send + Sync + 'static,
+{
     let value = data_state.data.get(&field_name).cloned();
     view! {
         {

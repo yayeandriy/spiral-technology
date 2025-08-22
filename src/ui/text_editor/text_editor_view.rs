@@ -1,13 +1,17 @@
 use leptos::prelude::*;
 
-use crate::{ shared::data_state_model::DataState, ui::{button::PrimaryButton, text_editor::{editor_text_area::EditorTextArea, toolbar::Toolbar}}};
+use crate::{ shared::data_state_model::{DataState, DataHandler}, ui::text_editor::{editor_text_area::EditorTextArea, toolbar::Toolbar}};
 
 #[component]
 pub fn TextEditorView<T, P>(
     data_state: DataState<T, P>,
-    data_handle: impl FnMut() + 'static + Clone + Send, 
     field_name: String
-) -> impl IntoView {
+) -> impl IntoView 
+where
+    T: Clone + Send + Sync + 'static,
+    P: Clone + Send + Sync + 'static,
+    DataState<T, P>: DataHandler,
+{
     let value = data_state.data.get(&field_name).cloned();
     view! {
         {
@@ -15,7 +19,6 @@ pub fn TextEditorView<T, P>(
                 view! {
                     <Toolbar 
                     data_state=data_state
-                    data_handle=data_handle.clone()
                     field_name=field_name.clone()
                     />
                     <EditorTextArea

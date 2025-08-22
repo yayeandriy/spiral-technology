@@ -4,7 +4,11 @@ use leptos::prelude::{signal, ReadSignal, WriteSignal};
 
 
 #[derive(Clone)]
-pub struct DataState<T = (), P = ()> {
+pub struct DataState<T = (), P = ()> 
+where 
+    T: Clone + Send + Sync + 'static,
+    P: Clone + Send + Sync + 'static,
+{
     pub data: HashMap<String, (ReadSignal<String>, WriteSignal<String>)>,
     pub is_modified: (ReadSignal<Vec<String>>, WriteSignal<Vec<String>>),
     pub id: i32,
@@ -13,7 +17,11 @@ pub struct DataState<T = (), P = ()> {
     pub context: Option<Arc<P>>,
 }
 
-impl<T, P> Default for DataState<T,P> {
+impl<T, P> Default for DataState<T,P> 
+where 
+    T: Clone + Send + Sync + 'static,
+    P: Clone + Send + Sync + 'static,
+{
     fn default() -> Self {
         Self {
             data: HashMap::new(),
@@ -25,5 +33,20 @@ impl<T, P> Default for DataState<T,P> {
         }
     }
 
+    
 
 }
+
+pub trait DataHandler {
+    fn update_or_create(&self);
+}
+
+impl<T, P> DataState<T, P> 
+where 
+    T: Clone + Send + Sync + 'static,
+    P: Clone + Send + Sync + 'static,
+{
+    // The update_or_create method should be implemented in specific modules
+    // for their particular DataState types
+}
+
