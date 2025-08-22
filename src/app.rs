@@ -2,7 +2,8 @@
 use leptos::prelude::*;
 use leptos_meta::*;
 use leptos_router::{
-    components::{ParentRoute, Route, Router, Routes}, path, StaticSegment
+    components::{ParentRoute, Route, Router, Routes}, path, StaticSegment,
+    hooks::use_navigate
 };
 
 use crate::{
@@ -20,6 +21,19 @@ use crate::{
         }
     }
 };
+
+#[component]
+fn RedirectToHome() -> impl IntoView {
+    let navigate = use_navigate();
+    
+    Effect::new(move |_| {
+        navigate("/home", Default::default());
+    });
+    
+    view! {
+        <div></div>
+    }
+}
 
 
 
@@ -59,15 +73,7 @@ pub fn App() -> impl IntoView {
                  // Profile route (protected)
              
                  
-                 <Route path=path!("") view=|| view! {
-                     <AreaRoute>
-                     <CatalogRoute>
-                     <ProjectRoute>
-                         <HomePage />
-                     </ProjectRoute>
-                     </CatalogRoute>
-                     </AreaRoute>
-                 }/>
+                 <Route path=path!("") view=RedirectToHome/>
                  
                  <ParentRoute 
                         path=StaticSegment("/home") 
