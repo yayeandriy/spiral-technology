@@ -2,17 +2,14 @@ use std::{collections::HashMap, sync::Arc};
 
 use leptos::{prelude::*, reactive::spawn_local};
 
-use crate::{content::{content_context::use_project_content, model::ProjectContent}, shared::data_state_model::DataState, ui::text_editor::editor_text_area::EditorTextArea};
+use crate::{content::{content_context::{use_project_content, ProjectContentContext}, model::ProjectContent}, shared::data_state_model::DataState, ui::text_editor::{editor_text_area::EditorTextArea, text_editor_view::TextEditorView}};
 
 
-impl DataState<ProjectContent> {
+impl DataState<ProjectContent,ProjectContentContext> {
     pub fn new() -> Self {
-        Self {
-            data: HashMap::new(),
-            is_modified: signal(vec![]),
-            id: 0,
-            created_at: String::new(),
-            init_data: None,
+        Self {           
+
+            ..Default::default()
         }
     }
     pub fn from_data(input_data: Option<ProjectContent>) -> Self {
@@ -22,6 +19,18 @@ impl DataState<ProjectContent> {
             id: input_data.as_ref().map_or(0, |p| p.id as i32),
             created_at: input_data.as_ref().map_or(String::new(), |p| p.created_at.clone().unwrap_or_default()),
             init_data: input_data,
+            ..Default::default()    
+        }
+    }
+    pub fn from_data_with_context(input_data: Option<ProjectContent>, context: Arc<ProjectContentContext>) -> Self {
+        Self {
+            data: HashMap::new(),
+            is_modified: signal(vec![]),
+            id: input_data.as_ref().map_or(0, |p| p.id as i32),
+            created_at: input_data.as_ref().map_or(String::new(), |p| p.created_at.clone().unwrap_or_default()),
+            init_data: input_data,
+            context: Some(context),
+            ..Default::default()
         }
     }
 
@@ -82,6 +91,22 @@ impl DataState<ProjectContent> {
         });
     }
 
+    pub fn create_or_update(&self) {
+        let context = self.context.clone();
+        let state = Arc::new(self.clone());
+        if let Some(context) = context {
+            let update_content = Arc::try_unwrap(state)
+                        .unwrap_or_else(|arc| (*arc).clone())
+                        .into_data();
+             spawn_local(async move {
+                    let updated_content = update_content.clone();
+                    let text = updated_content.text.clone();
+                    context.create_or_update_project_content(text).await;
+            });
+        } else {
+            return;
+        }
+    }
 }
 
 
@@ -91,7 +116,7 @@ pub fn ContentEditor(
 ) -> impl IntoView {
     let context = use_project_content();
    let content_clone = content.clone();
-   let mut content_state = DataState::<ProjectContent>::from_data(Some(content_clone));
+   let mut content_state = DataState::<ProjectContent, ProjectContentContext>::from_data_with_context(Some(content_clone), context.clone());
 
    content_state.init_fields();
    content_state.listen_for_changes();
@@ -118,7 +143,7 @@ pub fn ContentEditor(
 
     view! {
         <div class="text-black h-[600px] ">
-            <EditorTextArea 
+            <TextEditorView 
                 data_state=(*project_content_state_clone).clone()
                 data_handle=(*handle_save_project_clone).clone()
                 field_name="text".to_string()

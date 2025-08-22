@@ -15,6 +15,7 @@ impl DataState<ProjectArea> {
             id: input_data.as_ref().map_or(0, |p| p.id as i32),
             created_at: input_data.as_ref().map_or(String::new(), |p| p.created_at.clone().unwrap_or_default()),
             init_data: input_data,
+            ..Default::default()
         }
     }
 
@@ -104,6 +105,7 @@ impl DataState<ProjectArea> {
             id: 0,
             created_at: String::new(),
             init_data: Some(init_data),
+            ..Default::default()
         }
     }
 

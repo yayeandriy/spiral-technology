@@ -22,6 +22,7 @@ impl DataState<Project> {
             id: 0,
             created_at: String::new(),
             init_data: None,
+            ..Default::default()
         }
     }
     pub fn from_data(input_data: Option<Project>) -> Self {
@@ -31,6 +32,7 @@ impl DataState<Project> {
             id: input_data.as_ref().map_or(0, |p| p.id),
             created_at: input_data.as_ref().map_or(String::new(), |p| p.created_at.clone().unwrap_or_default()),
             init_data: input_data,
+            ..Default::default()
         }
     }
 
@@ -174,23 +176,29 @@ pub fn ProjectForm(
                     if let Some(project_id) = project.as_ref().map(|p| p.id) {
                         let handle_delete_project = handle_delete_project.clone();
                         view!{
-                        <div class="w-1/2 flex flex-col space-y-4">
+                        <div class="w-full flex flex-col space-y-4">
                             <DangerButton 
                             on_click=move |_| {
                                 let handle_delete_project = handle_delete_project.clone();
                                 handle_delete_project(project_id);
                             }
                             >Delete project</DangerButton>
-                            <InputField
-                                data_state=(*project_state_clone).clone()
-                                data_handle=(*handle_save_project_clone).clone()
-                                field_name="title".to_string()
-                            />
-                            <InputField
-                                data_state=(*project_state_clone).clone()
-                                data_handle=(*handle_save_project_clone).clone()
-                                field_name="order".to_string()
-                            />
+                            <div class="flex space-x-2 w-full" >
+                                <div class="w-1/6" >                                    
+                                    <InputField
+                                    data_state=(*project_state_clone).clone()
+                                    data_handle=(*handle_save_project_clone).clone()
+                                    field_name="order".to_string()
+                                    />
+                                </div>
+                                <div class="grow" >
+                                    <InputField
+                                    data_state=(*project_state_clone).clone()
+                                    data_handle=(*handle_save_project_clone).clone()
+                                    field_name="title".to_string()
+                                    />
+                                </div>
+                            </div>
                             <FormTextArea
                                 data_state=(*project_state_clone).clone()
                                 data_handle=(*handle_save_project_clone).clone()
@@ -208,7 +216,7 @@ pub fn ProjectForm(
                       
                                 }.into_any()
                     }else{
-                        view!{ <div class="w-1/2 flex flex-col space-y-4">
+                        view!{ <div class="w-full flex flex-col space-y-4">
                             <InputField
                                 data_state=(*project_state_clone).clone()
                                 data_handle=(*handle_create_project_clone).clone()
