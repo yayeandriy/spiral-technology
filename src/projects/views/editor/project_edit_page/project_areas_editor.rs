@@ -213,7 +213,7 @@ fn CategorySection(
                         let area_to_pass = local_area_to_edit.get();
                         logging::log!("Area to edit: {:?}", area_to_pass);
                          view! {
-                                <div class="mt-2">
+                                <div class="mt-2 ">
                                     <AreaEditor 
                                         area=move || local_area_to_edit.get() 
                                         category=category_for_editor.clone() 

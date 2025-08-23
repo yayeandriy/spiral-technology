@@ -208,9 +208,11 @@ pub fn ProjectForm(
                                 tabs_titles=vec!["Content".into(), "Areas".into()]
                             >
                                 <ContentPage />
-                                <ProjectAreasEditor
+                                <div class="w-[600px]" >
+                                    <ProjectAreasEditor
                                     project_id=project_id
                                     />
+                                </div>
                             </Tabs>
                         </div>
                       

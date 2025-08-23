@@ -10,7 +10,6 @@ pub fn AreaEditor(
     open_form: (ReadSignal<bool>, WriteSignal<bool>),
 ) -> impl IntoView {
     // If an area is provided, automatically open the form for editing
-    let init_area = area();
     // let open_form = signal(false);
     let area = signal(area());
     let category_clone = category.clone();
@@ -18,12 +17,8 @@ pub fn AreaEditor(
         area.1.set(None);
        open_form.1.set(true);
     };
-    let area_clone = area.clone();
    
-   Effect::new(move || {
-       let is_open = open_form.0.get();
-       logging::log!("AreaEditor is_open: {}", is_open);
-    });
+   
 
     view! {
         <div class="text-sm w-full flex-col">            
