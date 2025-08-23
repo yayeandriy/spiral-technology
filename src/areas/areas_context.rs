@@ -7,7 +7,6 @@ use leptos::{
         signal,
         use_context,
         Children,
-        Effect,
         ReadSignal,
         Set,
         Update,

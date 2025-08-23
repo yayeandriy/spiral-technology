@@ -1,5 +1,5 @@
 
-use leptos::{html::I, logging, prelude::*};
+use leptos::{logging, prelude::*};
 
 use crate::{areas::areas_context::use_areas, catalog::catalog_context::use_catalog, projects::projects_context::use_project};
 

@@ -11,7 +11,7 @@ pub fn MarkdownRenderer(text: String) -> impl IntoView {
     let html = move || {
         // 1️⃣ Parse the markdown
         let markdown_input = text;
-        let mut options = pulldown_cmark::Options::all();
+        let options = pulldown_cmark::Options::all();
         let parser = pulldown_cmark::Parser::new_ext(&markdown_input, options);
 
         // 2️⃣ Convert parser to a string of raw HTML

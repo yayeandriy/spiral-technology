@@ -161,7 +161,7 @@ let handle_create_area = {
 let handle_update_area = {
     let areas_context = areas_context_clone.clone();
     let area_state_clone = area_state_clone_3.clone();
-    let mut on_close = on_close;
+    let on_close = on_close;
     move || {
         logging::log!("Saving project...");
         let areas_context = areas_context.clone();

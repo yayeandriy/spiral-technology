@@ -1,5 +1,5 @@
-use leptos::{html::Div, logging, prelude::*};
-use leptos_use::{use_element_bounding, use_element_visibility, UseElementBoundingReturn};
+use leptos::{html::Div, prelude::*};
+use leptos_use::{use_element_visibility};
 
 use crate::{areas::areas_context::use_areas, catalog::catalog_context::use_catalog, projects::model::Project};
 

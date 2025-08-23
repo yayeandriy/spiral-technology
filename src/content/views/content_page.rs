@@ -1,4 +1,4 @@
-use leptos::{html::S, prelude::*, reactive::spawn_local};
+use leptos::{prelude::*, reactive::spawn_local};
 
 use crate::{content::{content_context::use_project_content, views::content_editor::ContentEditor}, ui::PrimaryButton};
 

@@ -2,8 +2,7 @@ use leptos::prelude::*;
 
 use crate::{ 
     shared::data_state_model::{DataState, DataHandler}, 
-    ui::{button::PrimaryButton, text_editor::editor_text_area::MarkdownEditor},
-    content::views::markdown_renderer::MarkdownRenderer
+    ui::{button::PrimaryButton, text_editor::{editor_text_area::MarkdownEditor, markdown_renderer::MarkdownRenderer}}
 };
 
 #[component]

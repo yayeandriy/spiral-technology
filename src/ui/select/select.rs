@@ -1,10 +1,10 @@
-use leptos::{logging, prelude::*};
+use leptos::{prelude::*};
 
 
 pub fn Select<T: Send + Sync + Clone + PartialEq + ToString + 'static, F: Fn(T) + Clone + 'static>(
     options: impl Fn() -> Vec<T>,
     selected: Signal<Vec<T>>,    
-    mut on_click: F
+    on_click: F
 ) -> impl IntoView {
     view! {
         <div class="rounded-[6px] p-2 bg-gray-100 w-full flex text-black flex-col gap-[2px] ">

@@ -1,6 +1,6 @@
 use leptos::prelude::*;
 
-use crate::content::{content_context::use_project_content, views::markdown_renderer::MarkdownRenderer};
+use crate::{content::content_context::use_project_content, ui::text_editor::markdown_renderer::MarkdownRenderer};
 
 
 
